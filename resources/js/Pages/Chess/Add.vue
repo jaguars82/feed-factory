@@ -1,16 +1,16 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import IconLinkButton from '@/Components/IconLinkButton.vue'
 import { Head } from '@inertiajs/inertia-vue3';
+
 </script>
 
 <template>
-  <Head title="Панель управления" />
+  <Head title="Добавление новой шахматки" />
 
-  <AuthenticatedLayout>
+    <AuthenticatedLayout>
     <template #header>
       <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-        Панель управления
+        Добавление новой шахматки
       </h2>
     </template>
 
@@ -18,7 +18,7 @@ import { Head } from '@inertiajs/inertia-vue3';
       <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
           <div class="p-6 text-gray-900">
-            <IconLinkButton :href="route('chess.add')" text="Добавить объект (шахматку)" icon="table" />
+            форма
           </div>
         </div>
       </div>
