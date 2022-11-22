@@ -26,6 +26,7 @@ class ChessController extends Controller
         foreach ($worksheet->getRowIterator() as $row) {
             $cellIterator = $row->getCellIterator();
             $cellIterator->setIterateOnlyExistingCells(FALSE);
+            $currentCellNumber = 0;
             foreach ($cellIterator as $cell) {
                 $cellColumn = $cell->getColumn();
                 $cellRow = $cell->getRow();
@@ -37,6 +38,7 @@ class ChessController extends Controller
                     'address' => $cellColumn.$cellRow,
                     'row' => $cellRow,
                     'column' => $cellColumn,
+                    'columnNumber' => ++$currentCellNumber,
                     'rawValue' => $cellRawValue,
                     'bgColor1' => $cell->getStyle()->getFill()->getStartColor()->getRGB(),
                     'bgColor2' => $cell->getStyle()->getFill()->getEndColor()->getRGB(),

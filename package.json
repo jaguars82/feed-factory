@@ -20,8 +20,10 @@
         "vue": "^3.2.41"
     },
     "dependencies": {
+        "@element-plus/icons-vue": "^2.0.10",
         "@fortawesome/fontawesome-svg-core": "^6.2.1",
         "@fortawesome/free-solid-svg-icons": "^6.2.1",
-        "@fortawesome/vue-fontawesome": "^3.0.2"
+        "@fortawesome/vue-fontawesome": "^3.0.2",
+        "element-plus": "^2.2.22"
     }
 }
