@@ -38,6 +38,7 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/chess', [ChessController::class, 'add'])->name('chess.add');
+    Route::post('/chess', [ChessController::class, 'add'])->name('chess.add');
 });
 
 require __DIR__.'/auth.php';
