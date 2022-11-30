@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/inertia-vue3';
 import EntranceSelectionForm from '@/Pages/Chess/Partials/EntranceSelectionForm.vue';
+import ChessParamsForm from '@/Pages/Chess/Partials/ChessParamsForm.vue';
 
 defineProps({
   chessData: {
@@ -39,6 +40,7 @@ const nextStep = () => {
           <el-step title="Step 4" description="Some description" />
         </el-steps>
         
+        <ChessParamsForm v-if="activeStep === 1" />
         <EntranceSelectionForm v-if="activeStep === 2" :chessData="chessData" />
 
         <el-button style="margin-top: 12px" @click="nextStep">Дальше</el-button>

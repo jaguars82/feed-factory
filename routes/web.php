@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ChessController;
+use App\Http\Controllers\ProviderController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -39,6 +40,10 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/chess', [ChessController::class, 'add'])->name('chess.add');
     Route::post('/chess', [ChessController::class, 'add'])->name('chess.add');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/provider', [ProviderController::class, 'add'])->name('provider.add');
 });
 
 require __DIR__.'/auth.php';

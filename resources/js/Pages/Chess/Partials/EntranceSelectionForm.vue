@@ -82,8 +82,17 @@ const httpRequest = (params) => {
 }
 
 const flatMatrix = computed(() => {
-  const chosenSheme =  chessParams.filter(scheme => { return scheme.name === chosenSchemeName.value; });
+  const chosenSheme =  chessParams.filter(scheme => { 
+    return scheme.name === chosenSchemeName.value; 
+  });
   return chosenSheme.length ? chosenSheme[0].flatMatrix : [];
+});
+
+const schemeId = computed(() => {
+  const chosenSheme = chessParams.filter(scheme => { 
+    return scheme.name === chosenSchemeName.value;
+   });
+   return chosenSheme.length ? chosenSheme[0].id : null;
 });
 
 /* entrance selection state */
