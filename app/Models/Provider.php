@@ -17,4 +17,8 @@ class Provider extends Model
         'url',
         'email'
     ];
+
+    public function chesses() {
+        return $this->hasMany(Chess::class);
+    }
 }

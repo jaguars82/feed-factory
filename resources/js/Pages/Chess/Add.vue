@@ -7,14 +7,32 @@ import ChessParamsForm from '@/Pages/Chess/Partials/ChessParamsForm.vue';
 
 defineProps({
   chessData: {
-    type: Array
+    type: Array,
+  },
+  providers: {
+    type: Array,
+  },
+  developers: {
+    type: Array,
+  },
+  newbuildingComplexes: {
+    type: Array,
+    default: []
+  },
+  newbuildings: {
+    type: Array,
+    default: []
   }
 });
 
-const activeStep = ref(0)
+const activeStep = ref(0);
 
 const nextStep = () => {
-  if (activeStep.value++ > 3) activeStep.value = 0
+  if (activeStep.value++ > 3) activeStep.value = 0;
+}
+
+const goStep = (step) => {
+  activeStep.value = step;
 }
 
 </script>
@@ -40,7 +58,14 @@ const nextStep = () => {
           <el-step title="Step 4" description="Some description" />
         </el-steps>
         
-        <ChessParamsForm v-if="activeStep === 1" />
+        <ChessParamsForm
+          v-if="activeStep === 1"
+          :providers="providers"
+          :developers="developers"
+          :newbuildingComplexes="newbuildingComplexes"
+          :newbuildings="newbuildings"
+          @submit-chess-params="goStep(2)"
+        />
         <EntranceSelectionForm v-if="activeStep === 2" :chessData="chessData" />
 
         <el-button style="margin-top: 12px" @click="nextStep">Дальше</el-button>

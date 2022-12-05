@@ -38,12 +38,12 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/chess', [ChessController::class, 'add'])->name('chess.add');
-    Route::post('/chess', [ChessController::class, 'add'])->name('chess.add');
+    Route::match(['get', 'post'], '/chess', [ChessController::class, 'add'])->name('chess.add');
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/provider', [ProviderController::class, 'add'])->name('provider.add');
+    Route::get('/provider', [ProviderController::class, 'index'])->name('provider.index');
+    Route::match(['get', 'post'], '/provider/add', [ProviderController::class, 'add'])->name('provider.add');
 });
 
 require __DIR__.'/auth.php';

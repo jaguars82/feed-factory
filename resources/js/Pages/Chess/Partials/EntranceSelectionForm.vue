@@ -74,6 +74,7 @@ const httpRequest = (params) => {
   entrancesData.value = []; // clear selected entrances
   chessLoading.value = true;
   const chessUploadForm = useForm({
+    operation: 'load_chess_example',
     chess: params.file
   });
   chessUploadForm.post('/chess', {

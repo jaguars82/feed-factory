@@ -31,7 +31,8 @@ const form = useForm({
 
 const fillFromGRCH = () => {
   if (chosenGRCHDeveloper === false) { 
-    clearForm(); } else {
+      clearForm(); 
+    } else {
       form.name = chosenGRCHDeveloper.value.name;
       form.address = chosenGRCHDeveloper.value.address;
       form.detail = chosenGRCHDeveloper.value.detail;
@@ -51,7 +52,7 @@ const clearForm = () => {
 }
 
 const onSubmit = () => {
-
+  form.post('/provider/add');
 }
 
 </script>

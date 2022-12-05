@@ -6,6 +6,10 @@ use Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use App\Models\Provider;
+use App\Models\grch\Developer;
+use App\Models\grch\Newbuilding;
+use App\Models\grch\NewbuildingComplex;
 use Inertia\Inertia;
 
 class ChessController extends Controller
@@ -19,21 +23,22 @@ class ChessController extends Controller
     {
         /* handle ajax post-requests from form */
         if ($request->isMethod('post')) {
-            if ($request->hasFile('chess')) {
-               //echo '<pre>'; var_dump($request->file('chess')); echo '</pre>'; die; 
-               $chessFile = $request->file('chess');
-               $pathToChessFile = $chessFile->store('chessexamples');
-               //echo '<pre>'; var_dump($pathToChessFile); echo '</pre>'; die;
+            switch ($request->input('operation')) {
+                case 'load_chess_example':
+                    if ($request->hasFile('chess')) {
+                        $chessFile = $request->file('chess');
+                        $pathToChessFile = $chessFile->store('chessexamples');
+                    }
+                    break;
             }
         }
 
-        // TO DO in the line below provide a path to existing chess (when we are aditing a chess)
+        // TO DO in the line below provide a path to existing chess (when we are editing a chess)
         // if (!isset($pathToChessFile)) {$pathToChessFile = 'public/example1.xlsx';}
 
         $sheetData = array();
 
         if (isset($pathToChessFile) && !empty($pathToChessFile)) {
-            //$spreadsheet = IOFactory::load(storage_path('app/public/example1.xlsx'));
             $spreadsheet = IOFactory::load(storage_path('app/'.$pathToChessFile));
             $worksheet = $spreadsheet->getActiveSheet();
             $highestRow = $worksheet->getHighestRow();
@@ -66,14 +71,15 @@ class ChessController extends Controller
                         ]
                     ];
                     $sheetData[$cellRow][$cellColumn] = $cellItem;
-                    //echo '<pre>'; var_dump($cellItem); echo '</pre>'; die;
                 }
             }
         }
-
-        //echo '<pre>'; var_dump($sheetData); echo '</pre>'; die;
-
+        //echo '<pre>'; var_dump($request->post('developerId')); echo '</pre>'; die;
         return Inertia::render('Chess/Add', [
+            'developers' => Developer::all(),
+            'newbuildingComplexes' => Inertia::lazy(fn () => NewbuildingComplex::where('developer_id', $request->post('developerId'))->where('active', 1)->get()),
+            'newbuildings' => Inertia::lazy(fn () => Newbuilding::where('newbuilding_complex_id', $request->post('complexId'))->where('active', 1)->get()),
+            'providers' => Provider::all(),
             'chessData' => $sheetData
         ]);
     }
