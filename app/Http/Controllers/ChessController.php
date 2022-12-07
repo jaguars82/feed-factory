@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\Provider;
+use App\Models\Chess;
 use App\Models\grch\Developer;
 use App\Models\grch\Newbuilding;
 use App\Models\grch\NewbuildingComplex;
@@ -26,20 +27,45 @@ class ChessController extends Controller
             switch ($request->input('operation')) {
                 case 'load_chess_example':
                     if ($request->hasFile('chess')) {
+                        $currentChessId = $request->input('chessId');
                         $chessFile = $request->file('chess');
-                        $pathToChessFile = $chessFile->store('chessexamples');
+
+                        // put new chessfile to storage
+                        $pathToExampleChessFile = $chessFile->store('chessexamples'); // as an example file for chess configuration form
+                        $pathToWorkChessFile = $chessFile->store('chessfiles'); // as an initial work file
+                        
+                        // find chess model
+                        $chessModel = Chess::find($currentChessId);
+
+                        // remove previous file(s)
+                        if (!empty($chessModel->example_chess_path) && Storage::exists($chessModel->example_chess_path)) {
+                            Storage::delete($chessModel->example_chess_path);
+                        }
+                        if (!empty($chessModel->file_chess_path) && Storage::exists($chessModel->file_chess_path)) {
+                            Storage::delete($chessModel->file_chess_path);
+                        }
+
+                        // updating info in data base
+                        $chessModel->attachment_filename = $chessFile->getClientOriginalName();
+                        $chessModel->example_chess_path = $pathToExampleChessFile;
+                        $chessModel->file_chess_path = $pathToWorkChessFile;
+                        $chessModel->save();
                     }
+                    break;
+                case 'save_chess_params':
+                    $createChess = Chess::create($request->input());
+                    $currentChessId = $createChess->id;
                     break;
             }
         }
 
         // TO DO in the line below provide a path to existing chess (when we are editing a chess)
-        // if (!isset($pathToChessFile)) {$pathToChessFile = 'public/example1.xlsx';}
+        // if (!isset($pathToExampleChessFile)) {$pathToExampleChessFile = 'public/example1.xlsx';}
 
         $sheetData = array();
 
-        if (isset($pathToChessFile) && !empty($pathToChessFile)) {
-            $spreadsheet = IOFactory::load(storage_path('app/'.$pathToChessFile));
+        if (isset($pathToExampleChessFile) && !empty($pathToExampleChessFile)) {
+            $spreadsheet = IOFactory::load(storage_path('app/'.$pathToExampleChessFile));
             $worksheet = $spreadsheet->getActiveSheet();
             $highestRow = $worksheet->getHighestRow();
             $highestColumn = $worksheet->getHighestColumn();
@@ -76,6 +102,7 @@ class ChessController extends Controller
         }
         //echo '<pre>'; var_dump($request->post('developerId')); echo '</pre>'; die;
         return Inertia::render('Chess/Add', [
+            'currentChessId' => isset($currentChessId) ? $currentChessId : null,
             'developers' => Developer::all(),
             'newbuildingComplexes' => Inertia::lazy(fn () => NewbuildingComplex::where('developer_id', $request->post('developerId'))->where('active', 1)->get()),
             'newbuildings' => Inertia::lazy(fn () => Newbuilding::where('newbuilding_complex_id', $request->post('complexId'))->where('active', 1)->get()),

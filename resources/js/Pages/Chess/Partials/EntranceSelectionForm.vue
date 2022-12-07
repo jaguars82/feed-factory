@@ -5,11 +5,18 @@ import { ElNotification, genFileId } from 'element-plus';
 import { InfoFilled } from '@element-plus/icons-vue';
 import { chessParams } from '@/helpers/chess-schemes';
 
-defineProps({
+const props = defineProps({
+  currentChessId: {
+    type: Number
+  },
+  currentStep: {
+    type: Number
+  },
   chessData: {
     type: Array
   }
 });
+
 
 /* notifications */
 const showSelectStartNote = () => {
@@ -46,7 +53,7 @@ const showEndSelectError = () => {
     title: 'Ошибка при выборе диапазона',
     message: 'попробуйте указать конец подъезда ещё раз или выберите другую схему шахматки',
     type: 'error'
-  });  
+  });
 }
 /* End of notifications */
 
@@ -55,8 +62,6 @@ const chosenSchemeName = ref('');
 const chessLoading = ref(false);
 
 const chessUpload = ref();
-
-//const fileList = ref([]);
 
 const handleExceed = (files) => {
   chessUpload.value.clearFiles();
@@ -75,6 +80,7 @@ const httpRequest = (params) => {
   chessLoading.value = true;
   const chessUploadForm = useForm({
     operation: 'load_chess_example',
+    chessId: props.currentChessId,
     chess: params.file
   });
   chessUploadForm.post('/chess', {
@@ -123,6 +129,14 @@ function setCurrentEntranceInitNumber() {
 
 /* set of all the entrances */
 const entrancesData = ref([]);
+
+const form = useForm({
+  scheme: schemeId,
+  entrances_data: entrancesData,
+  example_chess_path: '',
+  attachment_filename: '',
+  last_completed_formstep: props.currentStep
+});
 
 /* calculate amount of floors in selection (entrance) */
 const currrentEntranceTotalFloors = computed(() => {
@@ -204,6 +218,17 @@ const onCellSelect = (row, col, colNum) => {
     showSelectEndNote();
   }
 }
+
+/*
+ * check if all the needed fields have been filled
+ */
+const canSubmitEntrancesData = () => {
+
+}
+
+const onSubmitEntrancesData = () => {
+  console.log(form);
+}
 </script>
 
 <template>
@@ -221,6 +246,7 @@ const onCellSelect = (row, col, colNum) => {
 
   <!-- chess example upload area -->
   <el-upload
+    v-if="chosenSchemeName"
     ref="chessUpload"
     action="string"
     :http-request="httpRequest"
@@ -230,12 +256,9 @@ const onCellSelect = (row, col, colNum) => {
     <template #trigger>
       <el-button type="primary">Выбрать файл</el-button>
     </template>
-    <!--
-    <el-button class="ml-3" type="success" @click="submitChessUpload">
-      Загрузить на сайт
-    </el-button>
-    -->
   </el-upload>
+
+  {{ entrancesData }}
 
   <div v-loading="true" v-if="chessLoading">
   </div>
@@ -379,6 +402,8 @@ const onCellSelect = (row, col, colNum) => {
           </div>
         </div>
       </div>
+
+      <el-button type="primary" @click="onSubmitEntrancesData" :disabled="!canSubmitEntrancesData">Дальше</el-button>
 
     </div>
   </template>

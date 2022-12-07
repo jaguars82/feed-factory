@@ -6,6 +6,9 @@ import EntranceSelectionForm from '@/Pages/Chess/Partials/EntranceSelectionForm.
 import ChessParamsForm from '@/Pages/Chess/Partials/ChessParamsForm.vue';
 
 defineProps({
+  currentChessId: {
+    type: Number || null
+  },
   chessData: {
     type: Array,
   },
@@ -64,9 +67,15 @@ const goStep = (step) => {
           :developers="developers"
           :newbuildingComplexes="newbuildingComplexes"
           :newbuildings="newbuildings"
+          :currentStep="activeStep"
           @submit-chess-params="goStep(2)"
         />
-        <EntranceSelectionForm v-if="activeStep === 2" :chessData="chessData" />
+        <EntranceSelectionForm
+          v-if="activeStep === 2"
+          :currentChessId="currentChessId"
+          :currentStep="activeStep"
+          :chessData="chessData"
+        />
 
         <el-button style="margin-top: 12px" @click="nextStep">Дальше</el-button>
           
