@@ -3,6 +3,12 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Storage;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use CityCenter1C;
+use VDK;
+use App\Models\Chess;
+use App\Models\Feed;
 
 class UpdateFeeds extends Command
 {
@@ -20,6 +26,10 @@ class UpdateFeeds extends Command
      */
     protected $description = 'Update all the active feeds';
 
+    private $columnsMap = array(
+		0 => 'A', 1 => 'B', 2 => 'C', 3 => 'D', 4 => 'E', 5 => 'F', 6 => 'G', 7 => 'H', 8 => 'I', 9 => 'J', 10 => 'K', 11 => 'L', 12 => 'M', 13 => 'N', 14 => 'O', 15 => 'P', 16 => 'Q', 17 => 'R', 18 => 'S', 19 => 'T', 20 => 'U', 21 => 'V', 22 => 'W', 23 => 'X', 24 => 'Y', 25 => 'Z', 26 => 'AA', 27 => 'AB', 28 => 'AC', 29 => 'AD', 30 => 'AE', 31 => 'AF', 32 => 'AG', 33 => 'AH', 34 => 'AI', 35 => 'AJ', 36 => 'AK', 37 => 'AL', 38 => 'AM', 39 => 'AN', 40 => 'AO', 41 => 'AP', 42 => 'AQ', 43 => 'AR', 44 => 'AS', 45 => 'AT', 46 => 'AU', 47 => 'AV', 48 => 'AW', 49 => 'AX', 50 => 'AY', 51 => 'AZ', 52 => 'BA', 53 => 'BB', 54 => 'BC', 55 => 'BD', 56 => 'BE', 57 => 'BF', 58 => 'BG', 59 => 'BH', 60 => 'BI', 61 => 'BJ', 62 => 'BK', 63 => 'BL', 64 => 'BM', 65 => 'BN', 66 => 'BO', 67 => 'BP', 68 => 'BQ', 69 => 'BR', 70 => 'BS', 71 => 'BT', 72 => 'BU', 73 => 'BV', 74 => 'BW', 75 => 'BX', 76 => 'BY', 77 => 'BZ', 78 => 'CA', 79 => 'CB', 80 => 'CC', 81 => 'CD', 82 => 'CE', 83 => 'CF', 84 => 'CG', 85 => 'CH', 86 => 'CI', 87 => 'CJ', 88 => 'CK', 89 => 'CL', 90 => 'CM', 91 => 'CN', 92 => 'CO', 93 => 'CP', 94 => 'CQ', 95 => 'CR', 96 => 'CS', 97 => 'CS', 98 => 'CT', 99 => 'CU', 100 => 'CV', 101 => 'CW', 102 => 'CX', 103 => 'CY', 104 => 'CZ'
+	);
+
     /**
      * Execute the console command.
      *
@@ -27,7 +37,165 @@ class UpdateFeeds extends Command
      */
     public function handle()
     {
-        echo 'выполняем обновление...';
+        $activeFeeds = Feed::all()->where('is_active', 1);
+         
+        foreach ($activeFeeds as $feed) {
+
+            $dom = new \DOMDocument("1.0", "utf-8");
+            $root = $dom->createElement("complexes");
+            $dom->appendChild($root);
+
+            $activeChesses = $feed->chesses->where('is_active', 1);
+            foreach ($activeChesses as $chess) {
+                //$this->processChess($chess->id);
+            }
+
+            $dom->save(storage_path('app/public/feeds/'.$feed->id.'.xml'));
+
+            echo (Storage::disk('public')->url('feeds/'.$feed->id.'.xml'));
+            //var_dump($dom);
+        }
+
+       // $this->processChess(45);
         return Command::SUCCESS;
     }
+
+    /**
+     * process a particular chess to form an array
+     * with chess data
+     */
+    private function processChess($chessId)
+    {
+        $chessData = array();
+
+        $chess = Chess::find($chessId);
+
+        $complex = array();
+        $complex['name'] = $chess->complex_feed_name;
+
+        $building = array();
+        $building['name'] = $chess->building_feed_name;
+
+        // chess file
+        if (!empty($chess->file_chess_path) && Storage::exists($chess->file_chess_path)) {
+            $spreadsheet = IOFactory::load(storage_path('app/'.$chess->file_chess_path));
+            $worksheet = $spreadsheet->getActiveSheet();
+        }
+
+        $scheme = $this->chessScheme($chess->scheme);
+
+        $colorLegend = get_object_vars(json_decode($chess->color_legend));
+        $hasColorLegend = count($colorLegend) > 0 ? true : false;
+        
+        $entrancesData = json_decode($chess->entrances_data);
+
+        $flats = array();
+
+        foreach ($entrancesData as $entrance) {
+
+            // vertical offset (table rows) for current floor
+            $currentFloorOffset = 0;
+            // iterating floors of the entrance
+            for ($i = 1; $i <= $entrance->totalFloors; $i++) {
+                // horizontal offset (table columns) for current flat on the floor
+                $currentFlatOffset = 0;
+                // iterating flats on the each floor
+                for ($j = 1; $j <= $entrance->flatsOnFloor; $j++) {
+                    $currentFlatStartColumnLetter = $this->getColumnLetterWithOffset($entrance->startCell->column, $currentFlatOffset);
+                    $currentFlatStartRow = (int)$entrance->startCell->row + $currentFloorOffset;
+                    $flatItem = $this->processFlat($currentFlatStartColumnLetter, $currentFlatStartRow, $scheme, $worksheet);
+                    $flatItem['section'] = $entrance->number;
+                    
+                    // flat status
+                    if ($hasColorLegend) {
+                        $flatStatus = array_search($flatItem['bgcolor'], $colorLegend);
+
+                        switch ($flatStatus) {
+                            case 'sale':
+                                $flatItem['status'] = 0;
+                                break;
+                            case 'reserved':
+                                $flatItem['status'] = 1;
+                                break;
+                            case 'sold':
+                                $flatItem['status'] = 2;
+                                break;
+                            default:
+                            $flatItem['status'] = 0;
+                        }
+                    } else {
+                        $flatItem['status'] = 0;
+                    }
+
+                    array_push($flats, $flatItem);
+                    
+                    // calculate horizontal offset for the next flat
+                    $currentFlatOffset += $scheme->offsets['flatMatrix'][0];
+                }
+                // calculate vertical offset for the next floor
+                $currentFloorOffset += $scheme->offsets['flatMatrix'][1];
+            }
+        }
+
+        $building['flats'] = $flats;
+        $complex['buildings']['building'] = $building;
+        
+        $chessData['complex'] = $complex;
+        var_dump($chessData);
+        return $chessData;
+    }
+
+    /**
+     * process a group of cells (representing a flat according scheme)
+     * and get params (number, price, area etc.)
+     */
+    private function processFlat($startColumn, $startRow, $scheme, $worksheet)
+    {
+        $flat = array();
+
+        if ($scheme->offsets['floor_in_flat'] === true) {
+            $flat['floor'] = $scheme->filterFloor($worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['floor']))->getValue());
+        }
+        $flat['number'] = $scheme->filterNumber($worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['flatNumber']))->getValue());
+        $flat['price_cash'] = $scheme->filterPrice($worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['price']))->getValue());
+        $flat['rooms'] = $scheme->filterRooms($worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['rooms']))->getValue());
+        $flat['area'] = $scheme->filterArea($worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['area']))->getValue());
+
+        // flat cell background color (to use it to set the status)
+        $flat['bgcolor'] = $worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['flatNumber']))->getStyle()->getFill()->getStartColor()->getRGB();
+
+        return $flat;
+    }
+
+    /**
+     * class with chess sheme params (offsets, filters)
+     */
+    private function chessScheme($scheme)
+    {
+        $createScheme = new $scheme();
+        return $createScheme;
+    }
+
+    /**
+     * Calculate the adress of a cell by given "start" and offset
+     */
+    private function getCellAddressByOffset($row, $column, $offset)
+    {
+        if ($offset[0] !== 0) { $row = $row + $offset[0]; }
+        if ($offset[1] !== 0) {
+            $column = $this->getColumnLetterWithOffset($column, $offset[1]);
+        }
+        return $column.$row;
+    }
+
+    /**
+     * Calculate the column (letter) by given start column and offset
+     */
+    private function getColumnLetterWithOffset($startColumnLetter, $offset)
+    {
+        $currentColumnKey = array_search($startColumnLetter, $this->columnsMap);
+        $targetColumnKey = $currentColumnKey + $offset;
+        return $this->columnsMap[$targetColumnKey];
+    } 
+
 }

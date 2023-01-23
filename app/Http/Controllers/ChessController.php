@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Redirect;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\Provider;
 use App\Models\Chess;
+use App\Models\Feed;
+use App\Models\Transport;
 use App\Models\grch\Developer;
 use App\Models\grch\Newbuilding;
 use App\Models\grch\NewbuildingComplex;
@@ -15,6 +17,16 @@ use Inertia\Inertia;
 
 class ChessController extends Controller
 {
+
+    public function index(Request $request)
+    {
+        $chesses = Chess::all();
+
+        return Inertia::render('Chess/Index', [
+            'chesses' => $chesses,
+        ]);
+    }
+
     /**
      * Display the add new chess form
      *
@@ -56,6 +68,21 @@ class ChessController extends Controller
                     $createChess = Chess::create($request->input());
                     $currentChessId = $createChess->id;
                     break;
+                case 'save_entrances_data':
+                    $currentChessId = $request->input('chessId');
+                    $chessModel = Chess::find($currentChessId);
+                    $chessModel->fill($request->input());
+                    //echo '<pre>'; var_dump($chessModel); echo '</pre>'; die;
+                    $chessModel->save();
+                    break;
+                case 'save_feed_transport':
+                    $currentChessId = $request->input('chessId');
+                    $chessModel = Chess::find($currentChessId);
+                    $chessModel->fill($request->input());
+                    //echo '<pre>'; var_dump($request->input()); echo '</pre>'; die;
+                    $chessModel->save();
+
+                    return Redirect::route('chess.index');
             }
         }
 
@@ -63,6 +90,7 @@ class ChessController extends Controller
         // if (!isset($pathToExampleChessFile)) {$pathToExampleChessFile = 'public/example1.xlsx';}
 
         $sheetData = array();
+        $aviableColors = array();
 
         if (isset($pathToExampleChessFile) && !empty($pathToExampleChessFile)) {
             $spreadsheet = IOFactory::load(storage_path('app/'.$pathToExampleChessFile));
@@ -81,14 +109,22 @@ class ChessController extends Controller
                     if ($cellRawValue === '#NULL!') {
                         $cellRawValue = null;
                     }
+
+                    // array with cell color indication
+                    $cellBgColor1 = $cell->getStyle()->getFill()->getStartColor()->getRGB();
+                    $cellBgColor2 = $cell->getStyle()->getFill()->getEndColor()->getRGB();
+                    if (!in_array($cellBgColor1, $aviableColors)) {
+                        array_push($aviableColors, $cellBgColor1);
+                    }
+
                     $cellItem = [
                         'address' => $cellColumn.$cellRow,
                         'row' => $cellRow,
                         'column' => $cellColumn,
                         'columnNumber' => ++$currentCellNumber,
                         'rawValue' => $cellRawValue,
-                        'bgColor1' => $cell->getStyle()->getFill()->getStartColor()->getRGB(),
-                        'bgColor2' => $cell->getStyle()->getFill()->getEndColor()->getRGB(),
+                        'bgColor1' => $cellBgColor1,
+                        'bgColor2' => $cellBgColor2,
                         'borders' => [
                             'top' => $cell->getStyle()->getBorders()->getTop()->getBorderStyle(),
                             'right' => $cell->getStyle()->getBorders()->getRight()->getBorderStyle(),
@@ -104,10 +140,13 @@ class ChessController extends Controller
         return Inertia::render('Chess/Add', [
             'currentChessId' => isset($currentChessId) ? $currentChessId : null,
             'developers' => Developer::all(),
+            'transports' => Transport::all(),
+            'feeds' => Feed::all(),
             'newbuildingComplexes' => Inertia::lazy(fn () => NewbuildingComplex::where('developer_id', $request->post('developerId'))->where('active', 1)->get()),
             'newbuildings' => Inertia::lazy(fn () => Newbuilding::where('newbuilding_complex_id', $request->post('complexId'))->where('active', 1)->get()),
             'providers' => Provider::all(),
-            'chessData' => $sheetData
+            'chessData' => $sheetData,
+            'aviableColors' => $aviableColors
         ]);
     }
 

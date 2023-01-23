@@ -14,9 +14,15 @@ const props = defineProps({
   },
   chessData: {
     type: Array
+  },
+  aviableColors: {
+    type: Array
   }
 });
 
+const emit = defineEmits(['submitEntrancesData']);
+
+const loading = ref(false);
 
 /* notifications */
 const showSelectStartNote = () => {
@@ -83,7 +89,7 @@ const httpRequest = (params) => {
     chessId: props.currentChessId,
     chess: params.file
   });
-  chessUploadForm.post('/chess', {
+  chessUploadForm.post('/chess/add', {
     onSuccess: () => chessLoading.value = false,
   });
 }
@@ -131,10 +137,11 @@ function setCurrentEntranceInitNumber() {
 const entrancesData = ref([]);
 
 const form = useForm({
-  scheme: schemeId,
-  entrances_data: entrancesData,
-  example_chess_path: '',
-  attachment_filename: '',
+  operation: 'save_entrances_data',
+  chessId: props.currentChessId,
+  scheme: schemeId.value,
+  color_legend: null,
+  entrances_data: entrancesData.value,
   last_completed_formstep: props.currentStep
 });
 
@@ -147,7 +154,7 @@ const currrentEntranceTotalFloors = computed(() => {
 /* calculate max amount of flats on a floor in selection (entrance) */
 const currentEntranceFlatsOnFloor = computed(() => {
     if (entranceSelectionState.value.startPointSelected === false || entranceSelectionState.value.endpointSelected === false) { return null; }
-    return currentEntrance.value.endCell.columnNumber / flatMatrix.value[1];
+    return (currentEntrance.value.endCell.columnNumber - currentEntrance.value.startCell.columnNumber + 1) / flatMatrix.value[1];
 });
 
 const startSelectingEntrance = function() {
@@ -199,7 +206,9 @@ const onCellSelect = (row, col, colNum) => {
   /* selecting end point of the entrance */
   if (entranceSelectionState.value.startPointSelected === true) {
     const rowsDelta = row - currentEntrance.value.startCell.row + 1;
-    if ((colNum >= flatMatrix.value[1] && colNum % flatMatrix.value[1] === 0) && ((rowsDelta >= flatMatrix.value[0] && rowsDelta % flatMatrix.value[0] === 0))) {
+    const colsDelta = colNum - currentEntrance.value.startCell.columnNumber + 1;
+
+  if ((colsDelta >= flatMatrix.value[1] && colsDelta % flatMatrix.value[1] === 0) && ((rowsDelta >= flatMatrix.value[0] && rowsDelta % flatMatrix.value[0] === 0))) {
       entranceSelectionState.value.endpointSelected = true;
       currentEntrance.value.endCell.row = row;
       currentEntrance.value.endCell.column = col;
@@ -220,194 +229,262 @@ const onCellSelect = (row, col, colNum) => {
 }
 
 /*
+ * Color legend flag
+ */
+const colorLegendFlag = ref(false);
+/*
+ * color legend
+ */
+const colorLegend = ref({
+  sale: '',
+  sold: '',
+  reserved: '',
+  unaviable: ''
+});
+const colorLegendFields = [
+  { name: 'sale', label: 'Продаётся' },
+  { name: 'sold', label: 'Продана' },
+  { name: 'reserved', label: 'Забронирована' },
+  { name: 'unaviable', label: 'Недоступна' },
+]
+/*
+ * check if color is on
+ * and at least one color is selected
+ */
+const colorLegendIsSet = computed(() => {
+  let colorIsSelected = colorLegend.value.sale === '' && colorLegend.value.sold === '' && colorLegend.value.reserved === '' && colorLegend.value.unaviable === '' ? false : true;
+  return colorLegendFlag.value && colorIsSelected ? true : false;
+});
+
+/*
  * check if all the needed fields have been filled
  */
-const canSubmitEntrancesData = () => {
-
-}
+const canSubmitEntrancesData = computed (() => {
+  if (entrancesData.value.length < 1) return false;
+  if (schemeId.value === null) return false;
+  if (colorLegendFlag.value && colorLegendIsSet.value === false) return false;
+  return true;
+});
 
 const onSubmitEntrancesData = () => {
-  console.log(form);
+  form.scheme = schemeId.value;
+  form.entrances_data = entrancesData.value;
+  if (colorLegendFlag.value === true) {
+    form.color_legend = colorLegend.value;
+  }
+  loading.value = true;
+  form.post('/chess/add', {
+    onSuccess: () => { 
+      loading.value = false;
+      emit('submitEntrancesData');
+    },
+  });
 }
 </script>
 
 <template>
-  <div>
-    <!-- chess scheme selection -->
-    <el-select v-model="chosenSchemeName" clearable class="m-2" placeholder="Выберите схему шахматки" size="large">
-      <el-option
-        v-for="scheme in chessParams"
-        :key="scheme.id"
-        :label="scheme.name"
-        :value="scheme.name"
-      />
-    </el-select>
-  </div>
+  <div v-loading="loading">
 
-  <!-- chess example upload area -->
-  <el-upload
-    v-if="chosenSchemeName"
-    ref="chessUpload"
-    action="string"
-    :http-request="httpRequest"
-    :auto-upload="true"
-    :show-file-list="false"
-  >
-    <template #trigger>
-      <el-button type="primary">Выбрать файл</el-button>
-    </template>
-  </el-upload>
-
-  {{ entrancesData }}
-
-  <div v-loading="true" v-if="chessLoading">
-  </div>
-  <template v-else>
-    <div v-if="flatMatrix.length" class="p-6 text-gray-900 entrances-container">
-      <!-- existing/saved entrances -->
-      <div 
-        v-if="entrancesData.length"
-        class="flex flex-wrap"
-      >
-        <div
-          class="flex flex-col"
-          v-for="entrance in entrancesData"
-          :key="entrance.id"
-        > 
-          <div class="bg-gray-200 rounded-t-md px-1 text-right">
-            <el-icon
-              class="text-gray-400 hover:text-gray-600 cursor-pointer"
-              size="sm"
-              @click="deleteEntranceFromSelected(entrance.id)">
-              <CircleClose />
-            </el-icon>
-          </div>
-          <div
-            class="flex flex-row align-middle justify-center border border-gray-200 rounded-b-md"
-          >
-            <div class="px-1 border-r self-center border-r-gray-200">
-              <span>№ {{ entrance.number }}</span>
-            </div>
-            <div class="flex flex-col">
-              <div class="px-1 border-b border-b-gray-200">
-                <span>{{ entrance.totalFloors }}</span>
-              </div>
-              <div class="px-1">
-                <span>{{ entrance.flatsOnFloor }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <el-affix target=".entrances-container">
-        <div class="w-100 bg-white pb-4">
-          <div v-if="entranceSelectionState.selectionStarted">
-            <div>
-              <span>Подъезд № </span>
-              <el-input-number v-model="currentEntrance.number" :min="1" :max="30" />
-            </div>
-            <div>
-              <span>Начало подъезда: </span>
-              <span v-if="entranceSelectionState.startPointSelected">ячейка <strong>{{ currentEntrance.startCell.column }}{{ currentEntrance.startCell.row }}</strong></span>
-              <span v-else>не выбрано</span>
-            </div>
-            <div>
-              <span>Конец подъезда: </span>
-              <span v-if="entranceSelectionState.endpointSelected">ячейка <strong>{{ currentEntrance.endCell.column }}{{ currentEntrance.endCell.row }}</strong></span>
-              <span v-else>не выбрано</span>
-            </div>
-            <div v-if="entranceSelectionState.endpointSelected && entranceSelectionState.startPointSelected">
-              <span>Параметры выделенного подъезда: этажей - <strong>{{ currrentEntranceTotalFloors }}</strong>, квартир на этаже - до <strong>{{ currentEntranceFlatsOnFloor }}</strong></span>
-            </div>
-            <div>
-              <el-button
-                :disabled="entranceSelectionState.startPointSelected === false || entranceSelectionState.endpointSelected === false"
-                @click="saveSelectionAsEntrance"
-              >
-                <el-icon class="pr-1">
-                  <Select />
-                </el-icon>
-                Сохранить
-              </el-button>
-                <el-popconfirm
-                  width="250px"
-                  confirm-button-text="Да"
-                  cancel-button-text="Нет"
-                  :icon="InfoFilled"
-                  icon-color="#626AEF"
-                  title="Текущее выделение будет потеряно. Вы уверены?"
-                  @confirm="cancelSelectingEntrance"
-                >
-                  <template #reference>
-                    <el-button
-                    >
-                      <el-icon class="pr-1">
-                        <Close />
-                      </el-icon>
-                      Отменить
-                    </el-button>
-                  </template>
-                </el-popconfirm>
-            </div>
-          </div>
-
-          <el-button
-            v-else
-            @click="startSelectingEntrance"
-          >
-            <el-icon class="pr-1">
-              <Plus />
-            </el-icon>
-            Подъезд
-          </el-button>
-        </div>
-      </el-affix>
-      
-      <!-- chess-table container -->
-      <div class="w-100 overflow-auto">
-        <div v-for="row of chessData" :key="row" class="flex">
-          <div
-            class="table-cell p-1 border border-gray-200 whitespace-nowrap overflow-visible"
-            :class="[
-              //`bg-[#${cell.bgColor1}]`,
-              entranceSelectionState.selectionStarted ? 'hover:bg-slate-300' : '',
-              cell.borders.right !== 'none' ? 'border-r-black' : '',
-              cell.borders.left !== 'none' ? 'border-l-black' : '',
-              cell.borders.top !== 'none' ? 'border-t-black' : '',
-              cell.borders.bottom !== 'none' ? 'border-b-black' : '',
-              entranceSelectionState.selectionStarted === false ? 'select-none' : 'cursor-pointer',
-              entranceSelectionState.startPointSelected
-              && entranceSelectionState.endpointSelected
-              && cell.row <= currentEntrance.endCell.row
-              && cell.row >= currentEntrance.startCell.row
-              && cell.columnNumber <= currentEntrance.endCell.columnNumber
-              && cell.columnNumber >= currentEntrance.startCell.columnNumber
-              ? 'bg-slate-200' : '',
-              entranceSelectionState.startPointSelected
-              && cell.row === currentEntrance.startCell.row
-              && cell.columnNumber === currentEntrance.startCell.columnNumber
-              ? 'border-t-8 border-t-slate-600 border-l-8 border-l-slate-600 bg-slate-200': '',
-              entranceSelectionState.endpointSelected
-              && cell.row === currentEntrance.endCell.row
-              && cell.columnNumber === currentEntrance.endCell.columnNumber
-              ? 'border-b-8 border-b-slate-600 border-r-8 border-r-slate-600 bg-slate-200': '',
-            ]"
-            v-for="cell of row"
-            :key="cell.address"
-            @click="onCellSelect(cell.row, cell.column, cell.columnNumber)"
-          >
-            {{ cell.rawValue }}
-          </div>
-        </div>
-      </div>
-
-      <el-button type="primary" @click="onSubmitEntrancesData" :disabled="!canSubmitEntrancesData">Дальше</el-button>
-
+    <div>
+      <!-- chess scheme selection -->
+      <el-select v-model="chosenSchemeName" clearable class="m-2" placeholder="Выберите схему шахматки" size="large">
+        <el-option
+          v-for="scheme in chessParams"
+          :key="scheme.id"
+          :label="scheme.name"
+          :value="scheme.name"
+        />
+      </el-select>
     </div>
-  </template>
 
+    <!-- chess example upload area -->
+    <el-upload
+      v-if="chosenSchemeName"
+      ref="chessUpload"
+      action="string"
+      :http-request="httpRequest"
+      :auto-upload="true"
+      :show-file-list="false"
+    >
+      <template #trigger>
+        <el-button type="primary">Выбрать файл</el-button>
+      </template>
+    </el-upload>
+
+    <div v-loading="true" v-if="chessLoading">
+    </div>
+    <template v-else>
+      <div v-if="flatMatrix.length" class="p-6 text-gray-900 entrances-container">
+        <!-- existing/saved entrances -->
+        <div 
+          v-if="entrancesData.length"
+          class="flex flex-wrap"
+        >
+          <div
+            class="m-1 flex flex-col"
+            v-for="entrance in entrancesData"
+            :key="entrance.id"
+          > 
+            <div class="bg-gray-200 rounded-t-md px-1 text-right">
+              <el-icon
+                class="text-gray-400 hover:text-gray-600 cursor-pointer"
+                size="sm"
+                @click="deleteEntranceFromSelected(entrance.id)">
+                <CircleClose />
+              </el-icon>
+            </div>
+            <div
+              class="flex flex-row align-middle justify-center border border-gray-200 rounded-b-md"
+            >
+              <div class="px-1 border-r self-center border-r-gray-200">
+                <span>№ {{ entrance.number }}</span>
+              </div>
+              <div class="flex flex-col">
+                <div class="px-1 border-b border-b-gray-200">
+                  <span>{{ entrance.totalFloors }}</span>
+                </div>
+                <div class="px-1">
+                  <span>{{ entrance.flatsOnFloor }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <el-affix target=".entrances-container">
+          <div class="w-100 bg-white pb-4">
+            <div v-if="entranceSelectionState.selectionStarted">
+              <div>
+                <span>Подъезд № </span>
+                <el-input-number v-model="currentEntrance.number" :min="1" :max="30" />
+              </div>
+              <div>
+                <span>Начало подъезда: </span>
+                <span v-if="entranceSelectionState.startPointSelected">ячейка <strong>{{ currentEntrance.startCell.column }}{{ currentEntrance.startCell.row }}</strong></span>
+                <span v-else>не выбрано</span>
+              </div>
+              <div>
+                <span>Конец подъезда: </span>
+                <span v-if="entranceSelectionState.endpointSelected">ячейка <strong>{{ currentEntrance.endCell.column }}{{ currentEntrance.endCell.row }}</strong></span>
+                <span v-else>не выбрано</span>
+              </div>
+              <div v-if="entranceSelectionState.endpointSelected && entranceSelectionState.startPointSelected">
+                <span>Параметры выделенного подъезда: этажей - <strong>{{ currrentEntranceTotalFloors }}</strong>, квартир на этаже - до <strong>{{ currentEntranceFlatsOnFloor }}</strong></span>
+              </div>
+              <div>
+                <el-button
+                  :disabled="entranceSelectionState.startPointSelected === false || entranceSelectionState.endpointSelected === false"
+                  @click="saveSelectionAsEntrance"
+                >
+                  <el-icon class="pr-1">
+                    <Select />
+                  </el-icon>
+                  Сохранить
+                </el-button>
+                  <el-popconfirm
+                    width="250px"
+                    confirm-button-text="Да"
+                    cancel-button-text="Нет"
+                    :icon="InfoFilled"
+                    icon-color="#626AEF"
+                    title="Текущее выделение будет потеряно. Вы уверены?"
+                    @confirm="cancelSelectingEntrance"
+                  >
+                    <template #reference>
+                      <el-button
+                      >
+                        <el-icon class="pr-1">
+                          <Close />
+                        </el-icon>
+                        Отменить
+                      </el-button>
+                    </template>
+                  </el-popconfirm>
+              </div>
+            </div>
+
+            <el-button
+              v-else
+              @click="startSelectingEntrance"
+            >
+              <el-icon class="pr-1">
+                <Plus />
+              </el-icon>
+              Подъезд
+            </el-button>
+          </div>
+        </el-affix>
+        
+        <!-- chess-table container -->
+        <div class="w-100 overflow-auto">
+          <div v-for="row of chessData" :key="row" class="flex">
+            <div
+              class="table-cell p-1 border border-gray-200 whitespace-nowrap overflow-visible"
+              :class="[
+                //`bg-[#${cell.bgColor1}]`,
+                entranceSelectionState.selectionStarted ? 'hover:bg-slate-300' : '',
+                cell.borders.right !== 'none' ? 'border-r-black' : '',
+                cell.borders.left !== 'none' ? 'border-l-black' : '',
+                cell.borders.top !== 'none' ? 'border-t-black' : '',
+                cell.borders.bottom !== 'none' ? 'border-b-black' : '',
+                entranceSelectionState.selectionStarted === false ? 'select-none' : 'cursor-pointer',
+                entranceSelectionState.startPointSelected
+                && entranceSelectionState.endpointSelected
+                && cell.row <= currentEntrance.endCell.row
+                && cell.row >= currentEntrance.startCell.row
+                && cell.columnNumber <= currentEntrance.endCell.columnNumber
+                && cell.columnNumber >= currentEntrance.startCell.columnNumber
+                ? 'bg-slate-200' : '',
+                entranceSelectionState.startPointSelected
+                && cell.row === currentEntrance.startCell.row
+                && cell.columnNumber === currentEntrance.startCell.columnNumber
+                ? 'border-t-8 border-t-slate-600 border-l-8 border-l-slate-600 bg-slate-200': '',
+                entranceSelectionState.endpointSelected
+                && cell.row === currentEntrance.endCell.row
+                && cell.columnNumber === currentEntrance.endCell.columnNumber
+                ? 'border-b-8 border-b-slate-600 border-r-8 border-r-slate-600 bg-slate-200': '',
+              ]"
+              v-for="cell of row"
+              :key="cell.address"
+              @click="onCellSelect(cell.row, cell.column, cell.columnNumber)"
+            >
+              {{ cell.rawValue }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Color legend section -->
+        <div>
+          <el-checkbox v-model="colorLegendFlag" label="Цветовая маркировка статуса квариты" size="large" />
+          <div v-if="colorLegendFlag">
+            <el-form label-width="120px">
+              <el-form-item v-for="field in colorLegendFields" :key="field.name" :label="field.label">
+                <el-select v-model="colorLegend[field.name]" clearable placeholder="Выберите цвет" :style="`background-color: #${colorLegend[field.name]} !important;`">
+                  <el-option
+                    v-for="color of aviableColors"
+                    :key="color"
+                    :value="color"
+                  >
+                    <div
+                      :class="`text-center bg-[#${color}]`"
+                      :style="`background-color: #${color} !important;`"
+                    >{{ color }}</div>
+                  </el-option>
+                </el-select>
+                <div :class="`w-10 rounded-sm mx-2 text-center bg-[#${colorLegend[field.name]}]`" :style="`background-color: #${colorLegend[field.name]} !important;`">
+                  &nbsp;
+                </div>
+              </el-form-item>
+            </el-form>
+          </div>
+        </div>
+
+        <el-button type="primary" @click="onSubmitEntrancesData" :disabled="!canSubmitEntrancesData">Дальше</el-button>
+
+      </div>
+    </template>
+  </div>
 </template>
 
 <style scoped>

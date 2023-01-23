@@ -86,7 +86,7 @@ const onDeveloperSelect = () => {
   form.building_alias = '';
   form.complex_feed_name = '';
   form.building_feed_name = '';
-  Inertia.visit('/chess', { 
+  Inertia.visit('/chess/add', { 
     method: 'post',
     only: ['newbuildingComplexes'],
     preserveState: true,
@@ -107,7 +107,7 @@ const onComplexSelect = () => {
   form.building_alias = '';
   form.complex_feed_name = '';
   form.building_feed_name = '';
-  Inertia.visit('/chess', { 
+  Inertia.visit('/chess/add', { 
     method: 'post',
     only: ['newbuildings'],
     preserveState: true,
@@ -169,7 +169,7 @@ const fillDuoFilds = () => {
 const onSubmitChessParams = () => {
   loading.value = true;
   fillDuoFilds();
-    form.post('/chess', {
+    form.post('/chess/add', {
     onSuccess: () => { 
       loading.value = false;
       emit('submitChessParams');

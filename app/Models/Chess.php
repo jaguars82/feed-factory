@@ -11,6 +11,7 @@ class Chess extends Model
 
     protected $fillable = [
         'provider_id',
+        'feed_id',
         'complex_feed_name',
         'building_feed_name',
         'developer_alias',
@@ -19,6 +20,8 @@ class Chess extends Model
         'name',
         'scheme',
         'entrances_data',
+        'color_legend',
+        'is_active',
         'example_chess_path',
         'file_chess_path',
         'sender_email',

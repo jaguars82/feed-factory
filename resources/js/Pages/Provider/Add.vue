@@ -6,7 +6,7 @@ import { Head } from '@inertiajs/inertia-vue3';
 
 const props = defineProps({
   developers: {
-    type: 4
+    type: Array
   }
 });
 
@@ -69,21 +69,25 @@ const onSubmit = () => {
 
     <div class="py-12">
       <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white shadow-sm sm:rounded-lg">
+        <div class="p-6 bg-white shadow-sm sm:rounded-lg">
           <!-- import developer selection -->
           <div>
-            <el-select v-model="selectedFromGRCH" @change="fillFromGRCH" clearable>
-              <el-option
-                v-for="developer of developers"
-                :key="developer.id"
-                :label="developer.name"
-                :value="developer.id"
-              />
-            </el-select>
+            <el-form label-width="180px">
+              <el-form-item label="Импортировать из базы">
+                <el-select v-model="selectedFromGRCH" @change="fillFromGRCH" clearable placeholder="Выберите застройщика из базы grch.ru">
+                  <el-option
+                    v-for="developer of developers"
+                    :key="developer.id"
+                    :label="developer.name"
+                    :value="developer.id"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-form>
           </div>
 
           <div>
-            <el-form :model="form" label-width="120px">
+            <el-form :model="form" label-width="180px">
               <el-form-item label="Наименование">
                 <el-input v-model="form.name" />
               </el-form-item>
