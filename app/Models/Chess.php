@@ -31,15 +31,18 @@ class Chess extends Model
         'transport_id'
     ];
 
-    public function feed() {
+    public function feed()
+    {
         return $this->belongsTo(Feed::class);
     }
 
-    public function provider() {
+    public function provider()
+    {
         return $this->belongsTo(Provider::class);
     }
 
-    public function transport() {
+    public function transport()
+    {
         return $this->belongsTo(Transport::class);
     }
 }

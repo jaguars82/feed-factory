@@ -7,6 +7,8 @@ use Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use CityCenter1C;
 use VDK;
+use Krays;
+use Razvitie;
 use App\Models\Chess;
 use App\Models\Feed;
 
@@ -43,17 +45,60 @@ class UpdateFeeds extends Command
 
             $dom = new \DOMDocument("1.0", "utf-8");
             $root = $dom->createElement("complexes");
-            $dom->appendChild($root);
+            
 
             $activeChesses = $feed->chesses->where('is_active', 1);
             foreach ($activeChesses as $chess) {
-                //$this->processChess($chess->id);
+                $chessData = $this->processChess($chess->id);
+
+                // Newbuilding Complex
+                $complexNode = $dom->createElement("complex");
+                $complexName = $dom->createElement("name", $chessData['complex']['name']);
+                $complexNode->appendChild($complexName);
+
+                // Buildings
+                $buildingsNode = $dom->createElement("buildings");
+                foreach ($chessData['complex']['buildings'] as $building) {
+                    $buildingNode = $dom->createElement("building");
+                    $buildingName = $dom->createElement("name", $building['name']);
+                    $buildingNode->appendChild($buildingName);
+
+                    // Flats
+                    $flatsNode = $dom->createElement("flats");
+                    foreach ($building['flats'] as $flat) {
+                        $flatNode = $dom->createElement("flat");
+                        $flatId = $dom->createElement("flat_id", $flat['number']);
+                        $flatNumber = $dom->createElement("apartment", $flat['number']);
+                        $flatFloor = $dom->createElement("floor", $flat['floor']);
+                        $flatRoom = $dom->createElement("room", $flat['rooms']);
+                        $flatPrice = $dom->createElement("price", $flat['price_cash']);
+                        $flatArea = $dom->createElement("area", $flat['area']);
+                        $flatStatus = $dom->createElement("status", $flat['status']);
+                        $flatNode->appendChild($flatId);
+                        $flatNode->appendChild($flatNumber);
+                        $flatNode->appendChild($flatFloor);
+                        $flatNode->appendChild($flatRoom);
+                        $flatNode->appendChild($flatPrice);
+                        $flatNode->appendChild($flatArea);
+                        $flatNode->appendChild($flatStatus);
+                        $flatsNode->appendChild($flatNode);
+                    }
+
+                    $buildingNode->appendChild($flatsNode);
+
+                    $buildingsNode->appendChild($buildingNode);
+                }
+
+                $complexNode->appendChild($buildingsNode);
+                $root->appendChild($complexNode);
             }
+
+            $dom->appendChild($root);
 
             $dom->save(storage_path('app/public/feeds/'.$feed->id.'.xml'));
 
-            echo (Storage::disk('public')->url('feeds/'.$feed->id.'.xml'));
-            //var_dump($dom);
+            // echo (Storage::disk('public')->url('feeds/'.$feed->id.'.xml'));
+            // var_dump($dom);
         }
 
        // $this->processChess(45);
@@ -84,8 +129,10 @@ class UpdateFeeds extends Command
 
         $scheme = $this->chessScheme($chess->scheme);
 
-        $colorLegend = get_object_vars(json_decode($chess->color_legend));
-        $hasColorLegend = count($colorLegend) > 0 ? true : false;
+        if (!empty($chess->color_legend)) {
+            $colorLegend = get_object_vars(json_decode($chess->color_legend));
+        }
+        $hasColorLegend = isset($colorLegend) && (count($colorLegend) > 0) ? true : false;
         
         $entrancesData = json_decode($chess->entrances_data);
 
@@ -99,11 +146,23 @@ class UpdateFeeds extends Command
             for ($i = 1; $i <= $entrance->totalFloors; $i++) {
                 // horizontal offset (table columns) for current flat on the floor
                 $currentFlatOffset = 0;
+                // current floor for "not floor in flat" chesses (chesses where floor is set for the whole row, not for every flat)
+                $rowFloor = 0;
                 // iterating flats on the each floor
                 for ($j = 1; $j <= $entrance->flatsOnFloor; $j++) {
                     $currentFlatStartColumnLetter = $this->getColumnLetterWithOffset($entrance->startCell->column, $currentFlatOffset);
                     $currentFlatStartRow = (int)$entrance->startCell->row + $currentFloorOffset;
                     $flatItem = $this->processFlat($currentFlatStartColumnLetter, $currentFlatStartRow, $scheme, $worksheet);
+
+                    // get floor while processing 1st flat on the floor (for "not floor in flat") chess schemes
+                    if ($scheme->offsets['floor_in_flat'] === false && $j === 1) {
+                        $rowFloor = $scheme->filterFloor($worksheet->getCell($this->getCellAddressByOffset($currentFlatStartRow, $currentFlatStartColumnLetter, $scheme->offsets['floor']))->getValue());
+                    }
+                    // set floor for "not floor in flat" chess scheme
+                    if ($scheme->offsets['floor_in_flat'] === false) {
+                        $flatItem['floor'] = $rowFloor;
+                    }
+
                     $flatItem['section'] = $entrance->number;
                     
                     // flat status
@@ -127,7 +186,9 @@ class UpdateFeeds extends Command
                         $flatItem['status'] = 0;
                     }
 
-                    array_push($flats, $flatItem);
+                    if ($flatItem['number'] !== 0) {
+                        array_push($flats, $flatItem);
+                    }
                     
                     // calculate horizontal offset for the next flat
                     $currentFlatOffset += $scheme->offsets['flatMatrix'][0];
@@ -141,7 +202,7 @@ class UpdateFeeds extends Command
         $complex['buildings']['building'] = $building;
         
         $chessData['complex'] = $complex;
-        var_dump($chessData);
+        // var_dump($chessData);
         return $chessData;
     }
 

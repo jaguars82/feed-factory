@@ -209,9 +209,10 @@ return [
     */
 
     'aliases' => Facade::defaultAliases()->merge([
-        // 'ExampleClass' => App\Example\ExampleClass::class,
         'CityCenter1C' => App\Helpers\ChessSchemes\CityCenter1C::class,
         'VDK' => App\Helpers\ChessSchemes\VDK::class,
+        'Krays' => App\Helpers\ChessSchemes\Krays::class,
+        'Razvitie' => App\Helpers\ChessSchemes\Razvitie::class,
     ])->toArray(),
 
 ];
