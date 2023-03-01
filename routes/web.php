@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\FeedController;
+use App\Http\Controllers\ChessController;
+use App\Http\Controllers\ProviderController;
+use App\Http\Controllers\TransportController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -33,6 +37,26 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('chess', [ChessController::class, 'index'])->name('chess.index');
+    Route::match(['get', 'post'], '/chess/add', [ChessController::class, 'add'])->name('chess.add');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/provider', [ProviderController::class, 'index'])->name('provider.index');
+    Route::match(['get', 'post'], '/provider/add', [ProviderController::class, 'add'])->name('provider.add');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/feed', [FeedController::class, 'index'])->name('feed.index');
+    Route::match(['get', 'post'], '/feed/add', [FeedController::class, 'add'])->name('feed.add');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/transport', [TransportController::class, 'index'])->name('transport.index');
+    Route::match(['get', 'post'], '/transport/add', [TransportController::class, 'add'])->name('transport.add');
 });
 
 require __DIR__.'/auth.php';
