@@ -69,6 +69,7 @@ class LoadChessfiles extends Command
                     if (array_key_exists($attachment->name, $chessNames)) {
                         $pathParts = explode('/', $chessNames[$attachment->name]);
                         $attachment->save($path = storage_path('app/'.$pathParts[0].'/'), $filename = $pathParts[1]);
+                        //var_dump($pathParts);
                     }
                 }
                 // Mark message seen

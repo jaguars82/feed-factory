@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Artisan;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\Provider;
 use App\Models\Chess;
@@ -79,8 +80,10 @@ class ChessController extends Controller
                     $currentChessId = $request->input('chessId');
                     $chessModel = Chess::find($currentChessId);
                     $chessModel->fill($request->input());
-                    //echo '<pre>'; var_dump($request->input()); echo '</pre>'; die;
                     $chessModel->save();
+
+                    /** refresh feed to add just created chess to it */
+                    // Artisan::call('feeds:update');
 
                     return Redirect::route('chess.index');
             }

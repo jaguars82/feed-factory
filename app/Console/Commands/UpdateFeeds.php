@@ -39,15 +39,80 @@ class UpdateFeeds extends Command
      */
     public function handle()
     {
+        
         $activeFeeds = Feed::all()->where('is_active', 1);
          
         foreach ($activeFeeds as $feed) {
+            
+            $dataForXML = array();
+
+            $activeChesses = $feed->chesses->where('is_active', 1);
+
+            foreach ($activeChesses as $chess) {
+                $chessData = $this->processChess($chess->id);
+
+                if (!array_key_exists($chessData['complex']['name'], $dataForXML)) {
+                    $dataForXML[$chessData['complex']['name']] = array();
+                }
+
+                foreach ($chessData['complex']['buildings'] as $building) {
+                    if (!array_key_exists($building['name'], $dataForXML[$chessData['complex']['name']])) {
+                        $dataForXML[$chessData['complex']['name']][$building['name']] = $building['flats'];
+                    } else {
+                        $dataForXML[$chessData['complex']['name']][$building['name']] = array_merge( $dataForXML[$chessData['complex']['name']][$building['name']], $building['flats']);
+                    }
+                }
+
+            }
 
             $dom = new \DOMDocument("1.0", "utf-8");
             $root = $dom->createElement("complexes");
             
+            foreach ($dataForXML as $complexName => $buildings) {
+                
+                // Newbuilding Complex
+                $complexNode = $dom->createElement("complex");
+                $complexName = $dom->createElement("name", $complexName);
+                $complexNode->appendChild($complexName);
 
-            $activeChesses = $feed->chesses->where('is_active', 1);
+                // Buildings
+                $buildingsNode = $dom->createElement("buildings");
+                foreach ($buildings as $buildingName => $flats) {
+                    $buildingNode = $dom->createElement("building");
+                    $buildingName = $dom->createElement("name", $buildingName);
+                    $buildingNode->appendChild($buildingName);
+
+                    // Flats
+                    $flatsNode = $dom->createElement("flats");
+                    foreach ($flats as $flat) {
+                        $flatNode = $dom->createElement("flat");
+                        $flatId = $dom->createElement("flat_id", $flat['number']);
+                        $flatNumber = $dom->createElement("apartment", $flat['number']);
+                        $flatFloor = $dom->createElement("floor", $flat['floor']);
+                        $flatRoom = $dom->createElement("room", $flat['rooms']);
+                        $flatPrice = $dom->createElement("price", $flat['price_cash']);
+                        $flatArea = $dom->createElement("area", $flat['area']);
+                        $flatStatus = $dom->createElement("status", $flat['status']);
+                        $flatSection = $dom->createElement("section", $flat['section']);
+                        $flatNode->appendChild($flatId);
+                        $flatNode->appendChild($flatNumber);
+                        $flatNode->appendChild($flatFloor);
+                        $flatNode->appendChild($flatRoom);
+                        $flatNode->appendChild($flatPrice);
+                        $flatNode->appendChild($flatArea);
+                        $flatNode->appendChild($flatStatus);
+                        $flatNode->appendChild($flatSection);
+                        $flatsNode->appendChild($flatNode);
+                    }
+                    $buildingNode->appendChild($flatsNode);
+                    $buildingsNode->appendChild($buildingNode);
+                }
+                $complexNode->appendChild($buildingsNode);
+                $root->appendChild($complexNode);
+            }
+
+            /*
+            // Previous mechanism of feed-generating (without groupping by complex & newbuilding)
             foreach ($activeChesses as $chess) {
                 $chessData = $this->processChess($chess->id);
 
@@ -74,6 +139,7 @@ class UpdateFeeds extends Command
                         $flatPrice = $dom->createElement("price", $flat['price_cash']);
                         $flatArea = $dom->createElement("area", $flat['area']);
                         $flatStatus = $dom->createElement("status", $flat['status']);
+                        $flatSection = $dom->createElement("section", $flat['section']);
                         $flatNode->appendChild($flatId);
                         $flatNode->appendChild($flatNumber);
                         $flatNode->appendChild($flatFloor);
@@ -81,6 +147,7 @@ class UpdateFeeds extends Command
                         $flatNode->appendChild($flatPrice);
                         $flatNode->appendChild($flatArea);
                         $flatNode->appendChild($flatStatus);
+                        $flatNode->appendChild($flatSection);
                         $flatsNode->appendChild($flatNode);
                     }
 
@@ -91,17 +158,14 @@ class UpdateFeeds extends Command
 
                 $complexNode->appendChild($buildingsNode);
                 $root->appendChild($complexNode);
-            }
+            } 
+            */
 
             $dom->appendChild($root);
 
             $dom->save(storage_path('app/public/feeds/'.$feed->id.'.xml'));
 
-            // echo (Storage::disk('public')->url('feeds/'.$feed->id.'.xml'));
-            // var_dump($dom);
         }
-
-       // $this->processChess(45);
         return Command::SUCCESS;
     }
 
