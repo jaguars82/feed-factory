@@ -250,7 +250,8 @@ class UpdateFeeds extends Command
                         $flatItem['status'] = 0;
                     }
 
-                    if ($flatItem['number'] !== 0) {
+                    // add flat only it has number and it has status 'isLiving'
+                    if ($flatItem['number'] !== 0 && $flatItem['isLiving'] === true) {
                         array_push($flats, $flatItem);
                     }
                     
@@ -282,6 +283,7 @@ class UpdateFeeds extends Command
             $flat['floor'] = $scheme->filterFloor($worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['floor']))->getValue());
         }
         $flat['number'] = $scheme->filterNumber($worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['flatNumber']))->getValue());
+        $flat['isLiving'] = $scheme->isLiving($worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['isLiving']))->getValue());
         $flat['price_cash'] = $scheme->filterPrice($worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['price']))->getValue());
         $flat['rooms'] = $scheme->filterRooms($worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['rooms']))->getValue());
         $flat['area'] = $scheme->filterArea($worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['area']))->getValue());

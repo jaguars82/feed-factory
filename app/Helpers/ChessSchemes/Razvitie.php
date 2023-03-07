@@ -15,6 +15,7 @@ class Razvitie
         'rooms' => [6, 1],
         'area' => [7, 1],
         'price' => [4, 1],
+        'isLiving' => [6, 1], // a cell to check if apartment is living or not (0 ,0 - is default value)
         'flatMatrix' => [2, 9], // [amount of cells, amount of rows]
         'floor_in_flat' => false // if true - floor is set for each flat, if false - floor is set only fo the 1st flat on floor
     ];
@@ -50,5 +51,13 @@ class Razvitie
         if (empty($rawValue)) { return 0; }
         $array = explode('-', $rawValue);
         return (int)$array[0];
+    }
+
+    /** Method to check if the apartment is living or not */
+    public function isLiving($rawValue) {
+        if (str_contains('неж', $rawValue)) {
+            return false;
+        }
+        return true;
     }
 }

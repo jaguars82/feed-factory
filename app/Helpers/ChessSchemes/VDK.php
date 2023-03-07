@@ -15,6 +15,7 @@ class VDK
         'rooms' => [0 ,2],
         'area' => [1, 0],
         'price' => [2, 1],
+        'isLiving' => [0, 0], // a cell to check if apartment is living or not (0 ,0 - is default value)
         'flatMatrix' => [3, 3], // [amount of cells, amount of rows]
         'floor_in_flat' => false // if true - floor is set for each flat, if false - floor is set only fo the 1st flat on floor
     ];
@@ -45,5 +46,10 @@ class VDK
     {
         if (empty($rawValue)) { return 0; }
         return (int)$rawValue;
+    }
+
+    /** Method to check if the apartment is living or not */
+    public function isLiving($rawValue) {
+        return true;
     }
 }
