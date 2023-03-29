@@ -32,8 +32,12 @@ class LoadChessfiles extends Command
     {
         $activeChesses = Chess::all()->where('is_active', 1);
         $chessNames = array();
+        $chessPaths = array();
         foreach ($activeChesses as $chess) {
-            $chessNames[$chess->attachment_filename] = $chess->file_chess_path;
+            $currName = !empty($chess->attachment_filename) ? $chess->attachment_filename : '';
+            $currPath = !empty($chess->file_chess_path) ? $chess->file_chess_path : '';
+            array_push($chessNames, $currName);
+            array_push($chessPaths, $currPath);
         }
 
         $cm = new ClientManager($options = []);
@@ -66,14 +70,15 @@ class LoadChessfiles extends Command
             foreach($messages as $message){
                 $attachments = $message->getAttachments();
                 foreach($attachments as $attachment) {
-                    if (array_key_exists($attachment->name, $chessNames)) {
-                        $pathParts = explode('/', $chessNames[$attachment->name]);
+                    if ($ind = array_search($attachment->name, $chessNames)) {
+                        $pathParts = explode('/', $chessPaths[$ind]);
                         $attachment->save($path = storage_path('app/'.$pathParts[0].'/'), $filename = $pathParts[1]);
-                        //var_dump($pathParts);
+                        unset($chessNames[$ind]);
+                        unset($chessPaths[$ind]);
                     }
                 }
                 // Mark message seen
-                // $message->setFlag('Seen');
+                $message->setFlag('Seen');
             }
         }
 
