@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use CityCenter1C;
+use EuroStroy;
 use VDK;
 use Krays;
 use Razvitie;
@@ -62,7 +63,6 @@ class UpdateFeeds extends Command
                         $dataForXML[$chessData['complex']['name']][$building['name']] = array_merge( $dataForXML[$chessData['complex']['name']][$building['name']], $building['flats']);
                     }
                 }
-
             }
 
             $dom = new \DOMDocument("1.0", "utf-8");
@@ -204,27 +204,45 @@ class UpdateFeeds extends Command
 
         foreach ($entrancesData as $entrance) {
 
+            // array with room amount for each flat on the floor in current entrance according to flat's order (index) on the floor
+            $roomsByIndex = array();
+
             // vertical offset (table rows) for current floor
             $currentFloorOffset = 0;
             // iterating floors of the entrance
             for ($i = 1; $i <= $entrance->totalFloors; $i++) {
+                
                 // horizontal offset (table columns) for current flat on the floor
                 $currentFlatOffset = 0;
-                // current floor for "not floor in flat" chesses (chesses where floor is set for the whole row, not for every flat)
+                
+                // current 'floor' for "not floor in flat" chesses (chesses where floor is set for the whole row, not for every flat)
                 $rowFloor = 0;
+
                 // iterating flats on the each floor
+                // $j - is an index (order) of a flat on a floor
                 for ($j = 1; $j <= $entrance->flatsOnFloor; $j++) {
                     $currentFlatStartColumnLetter = $this->getColumnLetterWithOffset($entrance->startCell->column, $currentFlatOffset);
                     $currentFlatStartRow = (int)$entrance->startCell->row + $currentFloorOffset;
                     $flatItem = $this->processFlat($currentFlatStartColumnLetter, $currentFlatStartRow, $scheme, $worksheet);
 
+                    // fill array of rooms amount while processing top row (floor) of the entrance (for not 'rooms in flat')
+                    if ($scheme->offsets['rooms_in_flat'] === false && $i === 1) {
+                        $roomsByIndex[$j] = $this->getPureValue($worksheet, $scheme, $currentFlatStartRow, $currentFlatStartColumnLetter, 'filterRooms', 'rooms');
+                    }
+
                     // get floor while processing 1st flat on the floor (for "not floor in flat") chess schemes
                     if ($scheme->offsets['floor_in_flat'] === false && $j === 1) {
-                        $rowFloor = $scheme->filterFloor($worksheet->getCell($this->getCellAddressByOffset($currentFlatStartRow, $currentFlatStartColumnLetter, $scheme->offsets['floor']))->getValue());
+                        $rowFloor = $this->getPureValue($worksheet, $scheme, $currentFlatStartRow, $currentFlatStartColumnLetter, 'filterFloor', 'floor');
                     }
+                    
                     // set floor for "not floor in flat" chess scheme
                     if ($scheme->offsets['floor_in_flat'] === false) {
                         $flatItem['floor'] = $rowFloor;
+                    }
+
+                    // set rooms for "not rooms in flat" chess scheme
+                    if ($scheme->offsets['rooms_in_flat'] === false) {
+                        $flatItem['rooms'] = $roomsByIndex[$j];
                     }
 
                     $flatItem['section'] = $entrance->number;
@@ -280,13 +298,15 @@ class UpdateFeeds extends Command
         $flat = array();
 
         if ($scheme->offsets['floor_in_flat'] === true) {
-            $flat['floor'] = $scheme->filterFloor($worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['floor']))->getValue());
+            $flat['floor'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterFloor', 'floor');
         }
-        $flat['number'] = $scheme->filterNumber($worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['flatNumber']))->getValue());
-        $flat['isLiving'] = $scheme->isLiving($worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['isLiving']))->getValue());
-        $flat['price_cash'] = $scheme->filterPrice($worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['price']))->getValue());
-        $flat['rooms'] = $scheme->filterRooms($worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['rooms']))->getValue());
-        $flat['area'] = $scheme->filterArea($worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['area']))->getValue());
+        $flat['number'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterNumber', 'flatNumber');
+        $flat['isLiving'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'isLiving', 'isLiving');
+        $flat['price_cash'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterPrice', 'price');
+        if ($scheme->offsets['rooms_in_flat'] === true) {
+            $flat['rooms'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterRooms', 'rooms');
+        }
+        $flat['area'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterArea', 'area');
 
         // flat cell background color (to use it to set the status)
         $flat['bgcolor'] = $worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['flatNumber']))->getStyle()->getFill()->getStartColor()->getRGB();
@@ -323,6 +343,22 @@ class UpdateFeeds extends Command
         $currentColumnKey = array_search($startColumnLetter, $this->columnsMap);
         $targetColumnKey = $currentColumnKey + $offset;
         return $this->columnsMap[$targetColumnKey];
-    } 
+    }
+
+    /**
+     * Gets formatted (filtered) value of a cell
+     */
+    private function getPureValue($worksheet, $scheme, $startRow, $startColumn, $filterMethodName, $offsetFieldName)
+    {
+        $pureValue = false;
+
+        $targetCell = $worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets[$offsetFieldName]));
+
+        $getValueMethod = $targetCell->isFormula() ? 'getCalculatedValue' : 'getValue';
+       
+        $pureValue = $scheme->$filterMethodName(($targetCell)->$getValueMethod());
+
+        return $pureValue;
+    }
 
 }

@@ -17,7 +17,8 @@ class CityCenter1C
         'price' => [3, 1],
         'isLiving' => [0, 0], // a cell to check if apartment is living or not (0 ,0 - is default value)       
         'flatMatrix' => [3, 7], // [amount of cells, amount of rows]
-        'floor_in_flat' => true // if true - floor is set for each flat, if false - floor is set only fo the 1st flat on floor
+        'floor_in_flat' => true, // if true - 'floor' is set for each flat, if false - 'floor' is set only fo the 1st flat on floor
+        'rooms_in_flat' => true // if true - 'rooms' is set for each flat, if false - 'rooms' is set only fo the 1st flat in column
     ];
 
     public function filterArea($rawValue)

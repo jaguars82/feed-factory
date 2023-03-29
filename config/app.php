@@ -211,6 +211,7 @@ return [
     'aliases' => Facade::defaultAliases()->merge([
         'CityCenter1C' => App\Helpers\ChessSchemes\CityCenter1C::class,
         'VDK' => App\Helpers\ChessSchemes\VDK::class,
+        'EuroStroy' => App\Helpers\ChessSchemes\EuroStroy::class,
         'Krays' => App\Helpers\ChessSchemes\Krays::class,
         'Razvitie' => App\Helpers\ChessSchemes\Razvitie::class,
     ])->toArray(),
