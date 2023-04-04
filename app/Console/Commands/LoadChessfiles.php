@@ -47,7 +47,7 @@ class LoadChessfiles extends Command
             'encryption'    => 'ssl',
             'validate_cert' => true,
             'username'      => 'loader@grvrn.ru',
-            'password'      => 'vpjwtkknhavbkjma',
+            'password'      => 'arssxrquffmfsfyx',
             'protocol'      => 'imap'
         ]);
 

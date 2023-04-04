@@ -21,6 +21,10 @@ class EuroStroy
         'rooms_in_flat' => false // if true - 'rooms' is set for each flat, if false - 'rooms' is set only fo the 1st flat in column
     ];
 
+    public $params = [
+        'default_flat_status' => 1, // default status of a flat (in case if the color of the cell is not in the color-scheme of the chess)
+    ];
+
     public function filterArea($rawValue)
     {
         if (empty($rawValue)) { return 0; }

@@ -262,10 +262,10 @@ class UpdateFeeds extends Command
                                 $flatItem['status'] = 2;
                                 break;
                             default:
-                            $flatItem['status'] = 0;
+                            $flatItem['status'] = property_exists($scheme, 'params') && array_key_exists('default_flat_status', $scheme->params) ? $scheme->params['default_flat_status'] : 0;
                         }
                     } else {
-                        $flatItem['status'] = 0;
+                        $flatItem['status'] = property_exists($scheme, 'params') && array_key_exists('default_flat_status', $scheme->params) ? $scheme->params['default_flat_status'] : 0;
                     }
 
                     // add flat only it has number and it has status 'isLiving'
