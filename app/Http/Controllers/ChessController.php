@@ -18,6 +18,7 @@ use Inertia\Inertia;
 
 class ChessController extends Controller
 {
+    private $pathToProcessingChessFile;
 
     public function index(Request $request)
     {
@@ -44,7 +45,7 @@ class ChessController extends Controller
                         $chessFile = $request->file('chess');
 
                         // put new chessfile to storage
-                        $pathToExampleChessFile = $chessFile->store('chessexamples'); // as an example file for chess configuration form
+                        $this->pathToProcessingChessFile = $chessFile->store('chessexamples'); // as an example file for chess configuration form
                         $pathToWorkChessFile = $chessFile->store('chessfiles'); // as an initial work file
                         
                         // find chess model
@@ -60,10 +61,17 @@ class ChessController extends Controller
 
                         // updating info in data base
                         $chessModel->attachment_filename = $chessFile->getClientOriginalName();
-                        $chessModel->example_chess_path = $pathToExampleChessFile;
+                        $chessModel->example_chess_path = $this->pathToProcessingChessFile;
                         $chessModel->file_chess_path = $pathToWorkChessFile;
                         $chessModel->save();
                     }
+                    break;
+                case 'switch_sheet':
+                    $currentChessId = $request->input('chessId');
+                    $chessModel = Chess::find($currentChessId);
+                    $selectedSheetIndex = $request->input('sheetIndex');
+                    $selectedSheetTitle = $request->input('sheetTitle');
+                    $this->pathToProcessingChessFile = $chessModel->file_chess_path;
                     break;
                 case 'save_chess_params':
                     $createChess = Chess::create($request->input());
@@ -73,7 +81,6 @@ class ChessController extends Controller
                     $currentChessId = $request->input('chessId');
                     $chessModel = Chess::find($currentChessId);
                     $chessModel->fill($request->input());
-                    //echo '<pre>'; var_dump($chessModel); echo '</pre>'; die;
                     $chessModel->save();
                     break;
                 case 'save_feed_transport':
@@ -90,14 +97,20 @@ class ChessController extends Controller
         }
 
         // TO DO in the line below provide a path to existing chess (when we are editing a chess)
-        // if (!isset($pathToExampleChessFile)) {$pathToExampleChessFile = 'public/example1.xlsx';}
+        // if (!isset($this->pathToProcessingChessFile)) {$this->pathToProcessingChessFile = 'public/example1.xlsx';}
 
         $sheetData = array();
         $aviableColors = array();
 
-        if (isset($pathToExampleChessFile) && !empty($pathToExampleChessFile)) {
-            $spreadsheet = IOFactory::load(storage_path('app/'.$pathToExampleChessFile));
-            $worksheet = $spreadsheet->getActiveSheet();
+        if (!empty($this->pathToProcessingChessFile)) {
+            $spreadsheet = IOFactory::load(storage_path('app/'.$this->pathToProcessingChessFile));
+
+            if(isset($selectedSheetIndex)) {
+                $worksheet = $spreadsheet->getSheet($selectedSheetIndex);
+            } else {
+                $worksheet = $spreadsheet->getActiveSheet(); 
+            }
+
             $highestRow = $worksheet->getHighestRow();
             $highestColumn = $worksheet->getHighestColumn();
 
@@ -139,7 +152,16 @@ class ChessController extends Controller
                 }
             }
         }
-        //echo '<pre>'; var_dump($request->post('developerId')); echo '</pre>'; die;
+        
+        /** All the sheet */
+        $allSheets = [];
+        if(isset($spreadsheet)){
+            $sheets = $spreadsheet->getAllSheets();
+            foreach($sheets as $index => $sheet) {
+                array_push($allSheets, ['index' => $index, 'title' => $sheet->getTitle()]);
+            }
+        }
+        
         return Inertia::render('Chess/Add', [
             'currentChessId' => isset($currentChessId) ? $currentChessId : null,
             'developers' => Developer::all(),
@@ -148,6 +170,7 @@ class ChessController extends Controller
             'newbuildingComplexes' => Inertia::lazy(fn () => NewbuildingComplex::where('developer_id', $request->post('developerId'))->where('active', 1)->get()),
             'newbuildings' => Inertia::lazy(fn () => Newbuilding::where('newbuilding_complex_id', $request->post('complexId'))->where('active', 1)->get()),
             'providers' => Provider::all(),
+            'allSheets' => $allSheets,
             'chessData' => $sheetData,
             'aviableColors' => $aviableColors
         ]);

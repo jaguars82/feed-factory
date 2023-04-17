@@ -4,6 +4,7 @@ import { useForm } from '@inertiajs/inertia-vue3';
 import { ElNotification, genFileId } from 'element-plus';
 import { InfoFilled } from '@element-plus/icons-vue';
 import { chessParams } from '@/helpers/chess-schemes';
+import { all } from 'axios';
 
 const props = defineProps({
   currentChessId: {
@@ -11,6 +12,9 @@ const props = defineProps({
   },
   currentStep: {
     type: Number
+  },
+  allSheets: {
+    type: Array,
   },
   chessData: {
     type: Array
@@ -80,6 +84,7 @@ const submitChessUpload = () => {
   chessUpload.value.submit();
 }
 
+/** upload chess file */
 const httpRequest = (params) => {
   cancelSelectingEntrance(); // cancelling current selection
   entrancesData.value = []; // clear selected entrances
@@ -90,7 +95,27 @@ const httpRequest = (params) => {
     chess: params.file
   });
   chessUploadForm.post('/chess/add', {
-    onSuccess: () => chessLoading.value = false,
+    onSuccess: () => chessLoading.value = false
+  });
+}
+
+/** switch to another sheet */
+const switchSheet = (index, title) => {
+  cancelSelectingEntrance(); // cancelling current selection
+  entrancesData.value = []; // clear selected entrances
+  chessLoading.value = true;
+  const switchSheetForm = useForm({
+    operation: 'switch_sheet',
+    chessId: props.currentChessId,
+    sheetIndex: index,
+    sheetTitle: title,
+  });
+  switchSheetForm.post('/chess/add', {
+    onSuccess: () => { 
+      chessLoading.value = false;
+      form.sheet_index = index;
+      form.sheet_name = title;
+    }
   });
 }
 
@@ -140,6 +165,8 @@ const form = useForm({
   operation: 'save_entrances_data',
   chessId: props.currentChessId,
   scheme: schemeId.value,
+  sheet_name: null,
+  sheet_index: null,
   color_legend: null,
   entrances_data: entrancesData.value,
   last_completed_formstep: props.currentStep
@@ -307,13 +334,22 @@ const onSubmitEntrancesData = () => {
       :show-file-list="false"
     >
       <template #trigger>
-        <el-button type="primary">Выбрать файл</el-button>
+        <el-button class="ml-4" type="primary">Выбрать файл</el-button>
       </template>
     </el-upload>
 
     <div v-loading="true" v-if="chessLoading">
     </div>
     <template v-else>
+      <el-button-group class="mt-4 ml-4">
+        <el-button
+          v-for="sheet of allSheets"
+          type="primary"
+          @click="switchSheet(sheet.index, sheet.title)"
+        >
+        {{ sheet.title }}
+        </el-button>
+      </el-button-group>
       <div v-if="flatMatrix.length" class="p-6 text-gray-900 entrances-container">
         <!-- existing/saved entrances -->
         <div 

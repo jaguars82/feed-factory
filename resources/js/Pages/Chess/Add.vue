@@ -10,6 +10,9 @@ defineProps({
   currentChessId: {
     type: Number || null
   },
+  allSheets: {
+    type: Array,
+  },
   chessData: {
     type: Array,
   },
@@ -85,6 +88,7 @@ const goStep = (step) => {
             v-if="activeStep === 1"
             :currentChessId="currentChessId"
             :currentStep="activeStep"
+            :allSheets="allSheets"
             :chessData="chessData"
             :aviableColors="aviableColors"
             @submit-entrances-data="goStep(2)"
