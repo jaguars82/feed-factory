@@ -19,6 +19,8 @@ class Chess extends Model
         'building_alias',
         'name',
         'scheme',
+        'sheet_name',
+        'sheet_index',
         'entrances_data',
         'color_legend',
         'is_active',

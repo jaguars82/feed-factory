@@ -188,7 +188,16 @@ class UpdateFeeds extends Command
         // chess file
         if (!empty($chess->file_chess_path) && Storage::exists($chess->file_chess_path)) {
             $spreadsheet = IOFactory::load(storage_path('app/'.$chess->file_chess_path));
-            $worksheet = $spreadsheet->getActiveSheet();
+            if ($chess->sheet_index !== NULL) {
+                $sheets = $spreadsheet->getAllSheets();
+                if ($chess->sheet_name == $sheets[$chess->sheet_index]->getTitle()) {
+                    $worksheet = $spreadsheet->getSheet($chess->sheet_index);
+                } else {
+                    $worksheet = $spreadsheet->getSheetByName($chess->sheet_name);
+                }
+            } else {
+                $worksheet = $spreadsheet->getActiveSheet();
+            }
         }
 
         $scheme = $this->chessScheme($chess->scheme);
