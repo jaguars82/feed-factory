@@ -18,4 +18,8 @@ class Feed extends Model
     public function chesses() {
         return $this->hasMany(Chess::class);
     }
+
+    public function provider() {
+        return $this->BelongsTo(Provider::class);
+    }
 }

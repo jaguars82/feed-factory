@@ -18,6 +18,10 @@ class FeedController extends Controller
     public function index(Request $request) {
         $feeds = Feed::all();
 
+        foreach ($feeds as $feed) {
+           $feed['provider'];
+        }
+
         return Inertia::render('Feed/Index', [
             'feeds' => $feeds,
         ]);

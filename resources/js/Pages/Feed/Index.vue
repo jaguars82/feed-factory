@@ -35,8 +35,15 @@ defineProps({
 
           <el-table :data="feeds" empty-text="Нет фидов">
             <el-table-column prop="name" label="Название фида" />
-            <el-table-column prop="provider" label="Поставщик" />
-            <el-table-column prop="is_active" label="Активен" />
+            <el-table-column prop="provider.name" label="Поставщик" />
+            <el-table-column label="Активен" align="center" align-header="center">
+              <template #default="scope">
+                <el-icon :color="scope.row.is_active === 1 ? 'success' : 'danger'">
+                  <Check v-if="scope.row.is_active === 1" />
+                  <Close v-else />
+                </el-icon>
+              </template>
+            </el-table-column>
           </el-table>
         </div>
       </div>

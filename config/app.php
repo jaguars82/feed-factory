@@ -209,6 +209,7 @@ return [
     */
 
     'aliases' => Facade::defaultAliases()->merge([
+        'Accent' => App\Helpers\ChessSchemes\Accent::class,
         'CityCenter1C' => App\Helpers\ChessSchemes\CityCenter1C::class,
         'VDK' => App\Helpers\ChessSchemes\VDK::class,
         'EuroStroy' => App\Helpers\ChessSchemes\EuroStroy::class,
