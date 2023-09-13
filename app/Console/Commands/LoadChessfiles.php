@@ -3,9 +3,16 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Arr;
 use Webklex\PHPIMAP\ClientManager;
 use Webklex\PHPIMAP\Client;
 use App\Models\Chess;
+use Accent;
+use CityCenter1C;
+use EuroStroy;
+use VDK;
+use Krays;
+use Razvitie;
 
 class LoadChessfiles extends Command
 {
@@ -34,7 +41,9 @@ class LoadChessfiles extends Command
         $chessNames = array();
         $chessPaths = array();
         foreach ($activeChesses as $chess) {
-            $currName = !empty($chess->attachment_filename) ? $chess->attachment_filename : '';
+            $scheme = $this->chessScheme($chess->scheme);
+            //$currName = !empty($chess->attachment_filename) ? $chess->attachment_filename : '';
+            $currName = !empty($chess->attachment_filename) ? $scheme->filterChessFilename(substr($chess->attachment_filename, 0, strrpos($chess->attachment_filename, '.'))) : ''; // chess (attachment) filename without the extention and dynamic (changing) parts of the name (date etc.)
             $currPath = !empty($chess->file_chess_path) ? $chess->file_chess_path : '';
             array_push($chessNames, $currName);
             array_push($chessPaths, $currPath);
@@ -58,23 +67,37 @@ class LoadChessfiles extends Command
         /** @var \Webklex\PHPIMAP\Support\FolderCollection $folders */
         $folders = $client->getFolders();
 
+        //var_dump($chessNames); die;
+
         // Loop through every Mailbox
         /** @var \Webklex\PHPIMAP\Folder $folder */
         foreach($folders as $folder){
 
             // Get all Messages of the current Mailbox $folder
             /** @var \Webklex\PHPIMAP\Support\MessageCollection $messages */
-            $messages = $folder->messages()->since(strtotime("-1 week"))->unseen()->get();
+            $messages = $folder->messages()
+                ->since(strtotime("-1 week"))
+                //->unseen()
+                ->get();
 
             /** @var \Webklex\PHPIMAP\Message $message */
             foreach($messages as $message){
                 $attachments = $message->getAttachments();
                 foreach($attachments as $attachment) {
-                    if ($ind = array_search($attachment->name, $chessNames)) {
+                    //echo $attachment->name; echo PHP_EOL;
+                    /*if ($ind = array_search($attachment->name, $chessNames)) {
                         $pathParts = explode('/', $chessPaths[$ind]);
                         $attachment->save($path = storage_path('app/'.$pathParts[0].'/'), $filename = $pathParts[1]);
                         unset($chessNames[$ind]);
                         unset($chessPaths[$ind]);
+                    }*/
+                    foreach($chessNames as $index => $chessName) {
+                        if(str_starts_with($attachment->name, $chessName)) {
+                            $pathParts = explode('/', $chessPaths[$index]);
+                            $attachment->save($path = storage_path('app/'.$pathParts[0].'/'), $filename = $pathParts[1]);
+                            unset($chessNames[$index]);
+                            unset($chessPaths[$index]);  
+                        }
                     }
                 }
                 // Mark message seen
@@ -83,6 +106,15 @@ class LoadChessfiles extends Command
         }
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * class with chess sheme params (offsets, filters)
+     */
+    private function chessScheme($scheme)
+    {
+        $createScheme = new $scheme();
+        return $createScheme;
     }
 
 }

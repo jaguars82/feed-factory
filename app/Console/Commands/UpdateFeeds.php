@@ -319,7 +319,7 @@ class UpdateFeeds extends Command
         $flat['area'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterArea', 'area');
 
         // flat cell background color (to use it to set the status)
-        $flat['bgcolor'] = $worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['flatNumber']))->getStyle()->getFill()->getStartColor()->getRGB();
+        $flat['bgcolor'] = $worksheet !== null ? $worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['flatNumber']))->getStyle()->getFill()->getStartColor()->getRGB() : '';
 
         return $flat;
     }
@@ -362,11 +362,15 @@ class UpdateFeeds extends Command
     {
         $pureValue = false;
 
-        $targetCell = $worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets[$offsetFieldName]));
+        $targetCellAddress = $this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets[$offsetFieldName]);
 
-        $getValueMethod = $targetCell->isFormula() ? 'getCalculatedValue' : 'getValue';
-       
-        $pureValue = $scheme->$filterMethodName(($targetCell)->$getValueMethod());
+        if ($worksheet !== null) {
+            $targetCell = $worksheet->getCell($targetCellAddress);
+
+            $getValueMethod = $targetCell->isFormula() ? 'getCalculatedValue' : 'getValue';
+        
+            $pureValue = $scheme->$filterMethodName(($targetCell)->$getValueMethod());
+        }
 
         return $pureValue;
     }

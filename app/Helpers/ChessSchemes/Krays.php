@@ -2,7 +2,7 @@
 
 namespace App\Helpers\ChessSchemes;
 
-class Krays
+class Krays implements ChessSchemeInterface
 {
     public $offsets = [
         /* 
@@ -52,5 +52,9 @@ class Krays
     /** Method to check if the apartment is living or not */
     public function isLiving($rawValue) {
         return true;
+    }
+
+    public function filterChessFilename($unfilteredValue) {
+        return $unfilteredValue;
     }
 }

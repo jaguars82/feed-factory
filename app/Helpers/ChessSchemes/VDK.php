@@ -2,7 +2,7 @@
 
 namespace App\Helpers\ChessSchemes;
 
-class VDK
+class VDK implements ChessSchemeInterface
 {
     public $offsets = [
         /* 
@@ -52,5 +52,10 @@ class VDK
     /** Method to check if the apartment is living or not */
     public function isLiving($rawValue) {
         return true;
+    }
+
+    public function filterChessFilename($unfilteredValue) {
+        $filteredValue = substr($unfilteredValue, 0, strrpos($unfilteredValue, '_'));
+        return $filteredValue;
     }
 }

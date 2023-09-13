@@ -2,7 +2,7 @@
 
 namespace App\Helpers\ChessSchemes;
 
-class Razvitie
+class Razvitie implements ChessSchemeInterface
 {
     public $offsets = [
         /* 
@@ -60,5 +60,9 @@ class Razvitie
             return false;
         }
         return true;
+    }
+
+    public function filterChessFilename($unfilteredValue) {
+        return $unfilteredValue;
     }
 }

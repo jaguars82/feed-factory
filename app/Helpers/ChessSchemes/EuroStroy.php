@@ -2,7 +2,7 @@
 
 namespace App\Helpers\ChessSchemes;
 
-class EuroStroy
+class EuroStroy implements ChessSchemeInterface
 {
     public $offsets = [
         /* 
@@ -56,5 +56,9 @@ class EuroStroy
     /** Method to check if the apartment is living or not */
     public function isLiving($rawValue) {
         return true;
+    }
+
+    public function filterChessFilename($unfilteredValue) {
+        return $unfilteredValue;
     }
 }

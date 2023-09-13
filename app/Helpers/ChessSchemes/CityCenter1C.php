@@ -2,7 +2,7 @@
 
 namespace App\Helpers\ChessSchemes;
 
-class CityCenter1C
+class CityCenter1C implements ChessSchemeInterface
 {
     public $offsets = [
         /* 
@@ -55,5 +55,9 @@ class CityCenter1C
     /** Method to check if the apartment is living or not */
     public function isLiving($rawValue) {
         return true;
+    }
+
+    public function filterChessFilename($unfilteredValue) {
+        return $unfilteredValue;
     }
 }
