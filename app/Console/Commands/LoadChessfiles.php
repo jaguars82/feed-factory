@@ -11,6 +11,7 @@ use Accent;
 use CityCenter1C;
 use EuroStroy;
 use VDK;
+use Vybor;
 use Krays;
 use Razvitie;
 
@@ -77,7 +78,7 @@ class LoadChessfiles extends Command
             /** @var \Webklex\PHPIMAP\Support\MessageCollection $messages */
             $messages = $folder->messages()
                 ->since(strtotime("-1 week"))
-                //->unseen()
+                ->unseen()
                 ->get();
 
             /** @var \Webklex\PHPIMAP\Message $message */

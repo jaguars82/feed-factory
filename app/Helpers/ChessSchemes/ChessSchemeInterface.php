@@ -8,7 +8,7 @@ interface ChessSchemeInterface
     public function filterArea($rawValue);
     public function filterFloor($rawValue);
     public function filterNumber($rawValue);
-    public function filterPrice($rawValue);
+    public function filterPrice($rawValue/*, $areaInSquareMeters = null*/);
     public function filterRooms($rawValue);
 
     /** Method to check if the apartment is living or not */
