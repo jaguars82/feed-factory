@@ -47,8 +47,8 @@ class Vybor implements ChessSchemeInterface
         if (empty($rawValue)) { return 0; }
 
         $rawPricePerMeter = substr($rawValue, 0, strrpos($rawValue, ':'));
-        $filteredPricePerMeter = preg_replace("/[^0-9,]/", '', $rawPricePerMeter);
-        $pricePerMeter = str_replace(',', '.', $filteredPricePerMeter);
+        $filteredPricePerMeter = preg_replace("/[^0-9,]/", '', str_replace('м2', '', $rawPricePerMeter));
+        $pricePerMeter = (int)str_replace(',', '.', $filteredPricePerMeter);
 
         $price = $pricePerMeter * $areaInSquareMeters;
 
