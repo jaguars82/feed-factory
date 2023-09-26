@@ -9,6 +9,7 @@ use Accent;
 use CityCenter1C;
 use EuroStroy;
 use VDK;
+use Vybor;
 use Krays;
 use Razvitie;
 use App\Models\Chess;
@@ -312,11 +313,17 @@ class UpdateFeeds extends Command
         }
         $flat['number'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterNumber', 'flatNumber');
         $flat['isLiving'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'isLiving', 'isLiving');
-        $flat['price_cash'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterPrice', 'price');
+        $flat['area'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterArea', 'area');
+
+        if(property_exists($scheme, 'params') && array_key_exists('calculate_price_via_area', $scheme->params)) {
+            $flat['price_cash'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterPrice', 'price', $flat['area']);
+        } else {
+           $flat['price_cash'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterPrice', 'price'); 
+        }
+
         if ($scheme->offsets['rooms_in_flat'] === true) {
             $flat['rooms'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterRooms', 'rooms');
         }
-        $flat['area'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterArea', 'area');
 
         // flat cell background color (to use it to set the status)
         $flat['bgcolor'] = $worksheet !== null ? $worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['flatNumber']))->getStyle()->getFill()->getStartColor()->getRGB() : '';
@@ -358,7 +365,7 @@ class UpdateFeeds extends Command
     /**
      * Gets formatted (filtered) value of a cell
      */
-    private function getPureValue($worksheet, $scheme, $startRow, $startColumn, $filterMethodName, $offsetFieldName)
+    private function getPureValue($worksheet, $scheme, $startRow, $startColumn, $filterMethodName, $offsetFieldName, $additionalFilteringParam = null)
     {
         $pureValue = false;
 
@@ -369,7 +376,12 @@ class UpdateFeeds extends Command
 
             $getValueMethod = $targetCell->isFormula() ? 'getCalculatedValue' : 'getValue';
         
-            $pureValue = $scheme->$filterMethodName(($targetCell)->$getValueMethod());
+            if ($additionalFilteringParam !== null) {
+                $pureValue = $scheme->$filterMethodName(($targetCell)->$getValueMethod(), $additionalFilteringParam);
+            } else {
+                $pureValue = $scheme->$filterMethodName(($targetCell)->$getValueMethod());    
+            }
+            
         }
 
         return $pureValue;

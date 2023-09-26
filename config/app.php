@@ -212,6 +212,7 @@ return [
         'Accent' => App\Helpers\ChessSchemes\Accent::class,
         'CityCenter1C' => App\Helpers\ChessSchemes\CityCenter1C::class,
         'VDK' => App\Helpers\ChessSchemes\VDK::class,
+        'Vybor' => App\Helpers\ChessSchemes\Vybor::class,
         'EuroStroy' => App\Helpers\ChessSchemes\EuroStroy::class,
         'Krays' => App\Helpers\ChessSchemes\Krays::class,
         'Razvitie' => App\Helpers\ChessSchemes\Razvitie::class,
