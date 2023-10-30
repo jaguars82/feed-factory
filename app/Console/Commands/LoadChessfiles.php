@@ -78,7 +78,8 @@ class LoadChessfiles extends Command
             // Get all Messages of the current Mailbox $folder
             /** @var \Webklex\PHPIMAP\Support\MessageCollection $messages */
             $messages = $folder->messages()
-                ->since(strtotime("-1 week"))
+                //->since(strtotime("-1 week"))
+                ->since(strtotime("-1 month"))
                 ->unseen()
                 ->get();
 
