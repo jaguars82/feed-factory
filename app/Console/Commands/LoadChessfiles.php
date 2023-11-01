@@ -33,6 +33,20 @@ class LoadChessfiles extends Command
     protected $description = 'Load chess files from email\'s attachments';
 
     /**
+     * sets of symbols
+     * to ignore a chess-file that contains some if them in its name
+     */
+    protected $ignoreIfContains = [
+        'Кладовки',
+        'кладовки',
+        'Паркинг',
+        'паркинг',
+        'Гараж-стоянка',
+        'Земельный участок',
+        'Автостоянка'
+    ];
+
+    /**
      * Execute the console command.
      *
      * @return int
@@ -87,14 +101,13 @@ class LoadChessfiles extends Command
             foreach($messages as $message){
                 $attachments = $message->getAttachments();
                 foreach($attachments as $attachment) {
-                    //echo $attachment->name; echo PHP_EOL;
-                    /*if ($ind = array_search($attachment->name, $chessNames)) {
-                        $pathParts = explode('/', $chessPaths[$ind]);
-                        $attachment->save($path = storage_path('app/'.$pathParts[0].'/'), $filename = $pathParts[1]);
-                        unset($chessNames[$ind]);
-                        unset($chessPaths[$ind]);
-                    }*/
                     foreach($chessNames as $index => $chessName) {
+                        /** here we ignore files that contain some substrings determined in $this->ignoreIfContains property */
+                        foreach($this->ignoreIfContains as $ignoreMarker) {
+                            if (strpos($attachment->name, $ignoreMarker)) {
+                                continue 2;
+                            }
+                        }
                         if(str_starts_with($attachment->name, $chessName)) {
                             $pathParts = explode('/', $chessPaths[$index]);
                             $attachment->save($path = storage_path('app/'.$pathParts[0].'/'), $filename = $pathParts[1]);
