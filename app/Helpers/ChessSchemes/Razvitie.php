@@ -25,7 +25,7 @@ class Razvitie implements ChessSchemeInterface
     {
         if (empty($rawValue)) { return 0; }
         $array = explode('(', $rawValue);
-        $rawArea = explode(' ', $array[1]);
+        $rawArea = count($array) > 1 ? explode(' ', $array[1]) : [0];
         return floatval(str_replace(',', '.', $rawArea[0]));
     }
 
