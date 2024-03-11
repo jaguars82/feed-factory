@@ -101,7 +101,8 @@ class LoadChessfiles extends Command
             /** @var \Webklex\PHPIMAP\Support\MessageCollection $messages */
             $messages = $folder->messages()
                 //->since(strtotime("-1 week"))
-                ->since(strtotime("-1 month"))
+                ->since(strtotime("-2 weeks"))
+                //->since(strtotime("-1 month"))
                 ->unseen()
                 ->get();
 

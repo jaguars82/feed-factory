@@ -380,7 +380,7 @@ class UpdateFeeds extends Command
     private function getColumnLetterWithOffset($startColumnLetter, $offset)
     {
         $currentColumnKey = array_search($startColumnLetter, $this->columnsMap);
-        $targetColumnKey = $currentColumnKey + $offset;
+        $targetColumnKey = ($currentColumnKey + $offset) >= 0 ? $currentColumnKey + $offset : $currentColumnKey;
         return $this->columnsMap[$targetColumnKey];
     }
 
