@@ -57,7 +57,9 @@ class LoadChessfiles extends Command
         'земельный участок',
         'АВТОСТОЯНКА',
         'Автостоянка',
-        'автостоянка'
+        'автостоянка',
+        /** special cases */
+        '(вторая очередь)' // - to force downloading 'Городские сады 1' instead of 'Городские сады 1 (вторая очередь)' for 'ВДК' developer
     ];
 
     /**
@@ -71,12 +73,14 @@ class LoadChessfiles extends Command
         $chessNames = array();
         $chessPaths = array();
         foreach ($activeChesses as $chess) {
-            $scheme = $this->chessScheme($chess->scheme);
-            //$currName = !empty($chess->attachment_filename) ? $chess->attachment_filename : '';
-            $currName = !empty($chess->attachment_filename) ? $scheme->filterChessFilename(substr($chess->attachment_filename, 0, strrpos($chess->attachment_filename, '.'))) : ''; // chess (attachment) filename without the extention and dynamic (changing) parts of the name (date etc.)
-            $currPath = !empty($chess->file_chess_path) ? $chess->file_chess_path : '';
-            array_push($chessNames, $currName);
-            array_push($chessPaths, $currPath);
+            if (!empty($chess->scheme)) {
+                $scheme = $this->chessScheme($chess->scheme);
+                //$currName = !empty($chess->attachment_filename) ? $chess->attachment_filename : '';
+                $currName = !empty($chess->attachment_filename) ? $scheme->filterChessFilename(substr($chess->attachment_filename, 0, strrpos($chess->attachment_filename, '.'))) : ''; // chess (attachment) filename without the extention and dynamic (changing) parts of the name (date etc.)
+                $currPath = !empty($chess->file_chess_path) ? $chess->file_chess_path : '';
+                array_push($chessNames, $currName);
+                array_push($chessPaths, $currPath);
+            }
         }
 
         $cm = new ClientManager($options = []);
