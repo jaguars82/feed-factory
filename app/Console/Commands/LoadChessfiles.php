@@ -14,6 +14,7 @@ use EuroStroy;
 use VDK;
 use Vybor;
 use Krays;
+use Legos;
 use Razvitie;
 
 class LoadChessfiles extends Command

@@ -216,6 +216,7 @@ return [
         'Vybor' => App\Helpers\ChessSchemes\Vybor::class,
         'EuroStroy' => App\Helpers\ChessSchemes\EuroStroy::class,
         'Krays' => App\Helpers\ChessSchemes\Krays::class,
+        'Legos' => App\Helpers\ChessSchemes\Legos::class,
         'Razvitie' => App\Helpers\ChessSchemes\Razvitie::class,
     ])->toArray(),
 
