@@ -12,6 +12,7 @@ use EuroStroy;
 use VDK;
 use Vybor;
 use Krays;
+use Legos;
 use Razvitie;
 use App\Models\Chess;
 use App\Models\Feed;
@@ -72,7 +73,7 @@ class UpdateFeeds extends Command
             $root = $dom->createElement("complexes");
             
             foreach ($dataForXML as $complexName => $buildings) {
-                
+               
                 // Newbuilding Complex
                 $complexNode = $dom->createElement("complex");
                 $complexName = $dom->createElement("name", $complexName);
@@ -245,6 +246,9 @@ class UpdateFeeds extends Command
                     $currentFlatStartColumnLetter = $this->getColumnLetterWithOffset($entrance->startCell->column, $currentFlatOffset);
                     $currentFlatStartRow = (int)$entrance->startCell->row + $currentFloorOffset;
                     $flatItem = $this->processFlat($currentFlatStartColumnLetter, $currentFlatStartRow, $scheme, $worksheet);
+                    if ($complex['name'] == 'Жилой комплекс «Южный»') {
+                        var_dump($flatItem); echo PHP_EOL;
+                    }
 
                     // fill array of rooms amount while processing top row (floor) of the entrance (for not 'rooms in flat')
                     if ($scheme->offsets['rooms_in_flat'] === false && $i === 1) {
@@ -306,7 +310,7 @@ class UpdateFeeds extends Command
         $complex['buildings']['building'] = $building;
         
         $chessData['complex'] = $complex;
-        // var_dump($chessData);
+
         return $chessData;
     }
 
