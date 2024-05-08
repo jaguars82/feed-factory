@@ -246,9 +246,6 @@ class UpdateFeeds extends Command
                     $currentFlatStartColumnLetter = $this->getColumnLetterWithOffset($entrance->startCell->column, $currentFlatOffset);
                     $currentFlatStartRow = (int)$entrance->startCell->row + $currentFloorOffset;
                     $flatItem = $this->processFlat($currentFlatStartColumnLetter, $currentFlatStartRow, $scheme, $worksheet);
-                    if ($complex['name'] == 'Жилой комплекс «Южный»') {
-                        var_dump($flatItem); echo PHP_EOL;
-                    }
 
                     // fill array of rooms amount while processing top row (floor) of the entrance (for not 'rooms in flat')
                     if ($scheme->offsets['rooms_in_flat'] === false && $i === 1) {
