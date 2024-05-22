@@ -8,6 +8,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use Accent;
 use CityCenter1C;
 use DSK;
+use GCh;
 use EuroStroy;
 use VDK;
 use Vybor;
@@ -92,8 +93,20 @@ class UpdateFeeds extends Command
                         $flatNode = $dom->createElement("flat");
                         $flatId = $dom->createElement("flat_id", $flat['number']);
                         $flatNumber = $dom->createElement("apartment", $flat['number']);
+                        if (array_key_exists('number_string', $flat) && !empty($flat['number_string'])) {
+                            $flatNumberString = $dom->createElement("number_string", $flat['number_string']);
+                            $flatNode->appendChild($flatNumberString);
+                        }
+                        if (array_key_exists('number_appendix', $flat) && !empty($flat['number_appendix'])) {
+                            $flatNumberAppendix = $dom->createElement("number_appendix", $flat['number_appendix']);
+                            $flatNode->appendChild($flatNumberAppendix);
+                        }
                         $flatFloor = $dom->createElement("floor", $flat['floor']);
-                        $flatRoom = $dom->createElement("room", $flat['rooms']);
+                        $flatIndexOnFloor = $dom->createElement("index_on_floor", $flat['index_on_floor']);
+                        if (array_key_exists('rooms', $flat)) {
+                           $flatRoom = $dom->createElement("room", $flat['rooms']);
+                           $flatNode->appendChild($flatRoom);
+                        }
                         $flatPrice = $dom->createElement("price", $flat['price_cash']);
                         $flatArea = $dom->createElement("area", $flat['area']);
                         $flatStatus = $dom->createElement("status", $flat['status']);
@@ -101,7 +114,7 @@ class UpdateFeeds extends Command
                         $flatNode->appendChild($flatId);
                         $flatNode->appendChild($flatNumber);
                         $flatNode->appendChild($flatFloor);
-                        $flatNode->appendChild($flatRoom);
+                        $flatNode->appendChild($flatIndexOnFloor);
                         $flatNode->appendChild($flatPrice);
                         $flatNode->appendChild($flatArea);
                         $flatNode->appendChild($flatStatus);
@@ -247,51 +260,60 @@ class UpdateFeeds extends Command
                     $currentFlatStartRow = (int)$entrance->startCell->row + $currentFloorOffset;
                     $flatItem = $this->processFlat($currentFlatStartColumnLetter, $currentFlatStartRow, $scheme, $worksheet);
 
-                    // fill array of rooms amount while processing top row (floor) of the entrance (for not 'rooms in flat')
-                    if ($scheme->offsets['rooms_in_flat'] === false && $i === 1) {
-                        $roomsByIndex[$j] = $this->getPureValue($worksheet, $scheme, $currentFlatStartRow, $currentFlatStartColumnLetter, 'filterRooms', 'rooms');
-                    }
+                    // skip empty areas (gaps, flats with no number)
+                    // if ($flatItem === false) continue;
 
-                    // get floor while processing 1st flat on the floor (for "not floor in flat") chess schemes
-                    if ($scheme->offsets['floor_in_flat'] === false && $j === 1) {
-                        $rowFloor = $this->getPureValue($worksheet, $scheme, $currentFlatStartRow, $currentFlatStartColumnLetter, 'filterFloor', 'floor');
-                    }
-                    
-                    // set floor for "not floor in flat" chess scheme
-                    if ($scheme->offsets['floor_in_flat'] === false) {
-                        $flatItem['floor'] = $rowFloor;
-                    }
+                    // process flat if it exists
+                    if ($flatItem !== false) {
+                        // fill array of rooms amount while processing top row (floor) of the entrance (for not 'rooms in flat')
+                        if ($scheme->offsets['rooms_in_flat'] === false && $i === 1) {
+                            $roomsByIndex[$j] = $this->getPureValue($worksheet, $scheme, $currentFlatStartRow, $currentFlatStartColumnLetter, 'filterRooms', 'rooms');
+                        }
 
-                    // set rooms for "not rooms in flat" chess scheme
-                    if ($scheme->offsets['rooms_in_flat'] === false) {
-                        $flatItem['rooms'] = $roomsByIndex[$j];
-                    }
+                        // get floor while processing 1st flat on the floor (for "not floor in flat") chess schemes
+                        if ($scheme->offsets['floor_in_flat'] === false && $j === 1) {
+                            $rowFloor = $this->getPureValue($worksheet, $scheme, $currentFlatStartRow, $currentFlatStartColumnLetter, 'filterFloor', 'floor');
+                        }
+                        
+                        // set floor for "not floor in flat" chess scheme
+                        if ($scheme->offsets['floor_in_flat'] === false) {
+                            $flatItem['floor'] = $rowFloor;
+                        }
+                        
+                        // set flat's order on the floor
+                        $flatItem['index_on_floor'] = $j;
 
-                    $flatItem['section'] = $entrance->number;
-                    
-                    // flat status
-                    if ($hasColorLegend) {
-                        $flatStatus = array_search($flatItem['bgcolor'], $colorLegend);
+                        // set rooms for "not rooms in flat" chess scheme
+                        if ($scheme->offsets['rooms_in_flat'] === false && array_key_exists($j, $roomsByIndex)) {
+                            $flatItem['rooms'] = $roomsByIndex[$j];
+                        }
 
-                        switch ($flatStatus) {
-                            case 'sale':
-                                $flatItem['status'] = 0;
-                                break;
-                            case 'reserved':
-                                $flatItem['status'] = 1;
-                                break;
-                            case 'sold':
-                                $flatItem['status'] = 2;
-                                break;
-                            default:
+                        $flatItem['section'] = $entrance->number;
+                        
+                        // flat status
+                        if ($hasColorLegend) {
+                            $flatStatus = array_search($flatItem['bgcolor'], $colorLegend);
+
+                            switch ($flatStatus) {
+                                case 'sale':
+                                    $flatItem['status'] = 0;
+                                    break;
+                                case 'reserved':
+                                    $flatItem['status'] = 1;
+                                    break;
+                                case 'sold':
+                                    $flatItem['status'] = 2;
+                                    break;
+                                default:
+                                $flatItem['status'] = property_exists($scheme, 'params') && array_key_exists('default_flat_status', $scheme->params) ? $scheme->params['default_flat_status'] : 0;
+                            }
+                        } else {
                             $flatItem['status'] = property_exists($scheme, 'params') && array_key_exists('default_flat_status', $scheme->params) ? $scheme->params['default_flat_status'] : 0;
                         }
-                    } else {
-                        $flatItem['status'] = property_exists($scheme, 'params') && array_key_exists('default_flat_status', $scheme->params) ? $scheme->params['default_flat_status'] : 0;
                     }
 
                     // add flat only it has number and it has status 'isLiving'
-                    if ($flatItem['number'] !== 0 && $flatItem['isLiving'] === true) {
+                    if ($flatItem !== false && ($flatItem['number'] !== 0 && $flatItem['isLiving'] === true)) {
                         array_push($flats, $flatItem);
                     }
                     
@@ -317,12 +339,29 @@ class UpdateFeeds extends Command
      */
     private function processFlat($startColumn, $startRow, $scheme, $worksheet)
     {
+        $flatNumber = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterNumber', 'flatNumber');
+
+        /* Do not process the flat if it has no number */
+        if (empty($flatNumber)) return false;
+        
+        /* Process the rest of the flat's params */
         $flat = array();
+
+        $flat['number'] = $flatNumber;
+        
+        // derivatives of flat number (if the number contains not only digits)
+        // number_string
+        if (property_exists($scheme, 'params') && array_key_exists('number_string', $scheme->params)) {
+            $flat['number_string'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterNumberString', 'flatNumber');
+        }
+        // number_appendix
+        if (property_exists($scheme, 'params') && array_key_exists('number_appendix', $scheme->params)) {
+            $flat['number_appendix'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterNumberAppendix', 'flatNumber');
+        }
 
         if ($scheme->offsets['floor_in_flat'] === true) {
             $flat['floor'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterFloor', 'floor');
         }
-        $flat['number'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterNumber', 'flatNumber');
         $flat['isLiving'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'isLiving', 'isLiving');
         $flat['area'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterArea', 'area');
 
