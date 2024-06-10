@@ -17,6 +17,7 @@ use Vybor;
 use Krays;
 use Legos;
 use Razvitie;
+use SU35;
 
 class LoadChessfiles extends Command
 {
