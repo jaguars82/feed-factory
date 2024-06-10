@@ -219,6 +219,7 @@ return [
         'Krays' => App\Helpers\ChessSchemes\Krays::class,
         'Legos' => App\Helpers\ChessSchemes\Legos::class,
         'Razvitie' => App\Helpers\ChessSchemes\Razvitie::class,
+        'SU35' => App\Helpers\ChessSchemes\SU35::class,
     ])->toArray(),
 
 ];

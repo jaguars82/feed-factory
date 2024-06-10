@@ -48,6 +48,11 @@ const chessParams = [
     id: 'Razvitie',
     name: "Развитие",
     flatMatrix: [9, 2]
+  },
+  {
+    id: 'SU35',
+    name: "СУ-35",
+    flatMatrix: [4, 2]
   }
 ]
 

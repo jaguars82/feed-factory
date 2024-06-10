@@ -15,6 +15,7 @@ use Vybor;
 use Krays;
 use Legos;
 use Razvitie;
+use SU35;
 use App\Models\Chess;
 use App\Models\Feed;
 
@@ -213,7 +214,10 @@ class UpdateFeeds extends Command
 
         // chess file
         if (!empty($chess->file_chess_path) && Storage::exists($chess->file_chess_path)) {
-            $spreadsheet = IOFactory::load(storage_path('app/'.$chess->file_chess_path));
+            //$spreadsheet = IOFactory::load(storage_path('app/'.$chess->file_chess_path));
+            $reader = IOFactory::createReaderForFile(storage_path('app/'.$chess->file_chess_path));
+            $reader->setReadDataOnly(false);
+            $spreadsheet = $reader->load(storage_path('app/'.$chess->file_chess_path));
             if ($chess->sheet_index !== NULL) {
                 $sheets = $spreadsheet->getAllSheets();
                 if ($chess->sheet_name == $sheets[$chess->sheet_index]->getTitle()) {
@@ -273,6 +277,11 @@ class UpdateFeeds extends Command
                         // get floor while processing 1st flat on the floor (for "not floor in flat") chess schemes
                         if ($scheme->offsets['floor_in_flat'] === false && $j === 1) {
                             $rowFloor = $this->getPureValue($worksheet, $scheme, $currentFlatStartRow, $currentFlatStartColumnLetter, 'filterFloor', 'floor');
+                        }
+
+                        // correct floor if it has empty value (for example, if there is no column with floors or the flat is located not in the beginning of the floor)
+                        if ($scheme->offsets['floor_in_flat'] === false && empty($rowFloor)) {
+                            $rowFloor = $entrance->totalFloors - $i + 1;
                         }
                         
                         // set floor for "not floor in flat" chess scheme
@@ -362,15 +371,26 @@ class UpdateFeeds extends Command
         if ($scheme->offsets['floor_in_flat'] === true) {
             $flat['floor'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterFloor', 'floor');
         }
+
+        // isLiving parameter
         $flat['isLiving'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'isLiving', 'isLiving');
+
+        // area of the flat
         $flat['area'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterArea', 'area');
 
+        // price of the flat
         if (property_exists($scheme, 'params') && array_key_exists('calculate_price_via_area', $scheme->params)) {
-            $flat['price_cash'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterPrice', 'price', $flat['area']);
+            $flatPrice = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterPrice', 'price', $flat['area']);
         } else {
-           $flat['price_cash'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterPrice', 'price'); 
+            $flatPrice = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterPrice', 'price');
+            // if there is no price value in the regular cell - try an alternative cell (if the alternative cell is defined in the schema)
+            if ((empty($flatPrice) || $flatPrice < 300000) && array_key_exists('price_alt', $scheme->offsets)) {
+                $flatPrice = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterPrice', 'price_alt'); 
+            }
         }
+        $flat['price_cash'] = $flatPrice;
 
+        // amount of rooms
         if ($scheme->offsets['rooms_in_flat'] === true) {
             $flat['rooms'] = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterRooms', 'rooms');
         }
@@ -442,6 +462,11 @@ class UpdateFeeds extends Command
                 $pureValue = $scheme->$filterMethodName(($targetCell)->$getValueMethod(), $additionalFilteringParam);
             } else {
                 $pureValue = $scheme->$filterMethodName(($targetCell)->$getValueMethod());    
+            }
+
+            // Correct value if getCalculatedValue (above) has returned formula instead of a value
+            if(strstr($pureValue, '=') == true) {
+                $pureValue = $targetCell->getOldCalculatedValue();
             }
             
         }
