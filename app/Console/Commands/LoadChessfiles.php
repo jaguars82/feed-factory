@@ -39,7 +39,7 @@ class LoadChessfiles extends Command
      * sets of symbols
      * to ignore a chess-file that contains some if them in its name
      */
-    protected $ignoreIfContains = [
+    /* protected $ignoreIfContains = [
         'КЛАДОВКИ',
         'Кладовки',
         'кладовки',
@@ -61,9 +61,9 @@ class LoadChessfiles extends Command
         'АВТОСТОЯНКА',
         'Автостоянка',
         'автостоянка',
-        /** special cases */
+        // special cases
         '(вторая очередь)' // - to force downloading 'Городские сады 1' instead of 'Городские сады 1 (вторая очередь)' for 'ВДК' developer
-    ];
+    ]; */
 
     /**
      * Execute the console command.
@@ -125,12 +125,13 @@ class LoadChessfiles extends Command
                 foreach($attachments as $attachment) {
                     foreach($chessNames as $index => $chessName) {
                         /** here we ignore files that contain some substrings determined in $this->ignoreIfContains property */
-                        foreach($this->ignoreIfContains as $ignoreMarker) {
+                        /* foreach($this->ignoreIfContains as $ignoreMarker) {
                             if (strpos($attachment->name, $ignoreMarker)) {
                                 continue 2;
                             }
-                        }
-                        if(str_starts_with($attachment->name, $chessName)) {
+                        } */
+                        if ($chessName === $scheme->filterChessFilename(substr($attachment->name, 0, strrpos($attachment->name, '.')))) {
+                        //if(str_starts_with($attachment->name, $chessName)) {
                             $pathParts = explode('/', $chessPaths[$index]);
                             $attachment->save($path = storage_path('app/'.$pathParts[0].'/'), $filename = $pathParts[1]);
                             unset($chessNames[$index]);

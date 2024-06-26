@@ -138,56 +138,6 @@ class UpdateFeeds extends Command
                 $root->appendChild($complexNode);
             }
 
-            /*
-            // Previous mechanism of feed-generating (without groupping by complex & newbuilding)
-            foreach ($activeChesses as $chess) {
-                $chessData = $this->processChess($chess->id);
-
-                // Newbuilding Complex
-                $complexNode = $dom->createElement("complex");
-                $complexName = $dom->createElement("name", $chessData['complex']['name']);
-                $complexNode->appendChild($complexName);
-
-                // Buildings
-                $buildingsNode = $dom->createElement("buildings");
-                foreach ($chessData['complex']['buildings'] as $building) {
-                    $buildingNode = $dom->createElement("building");
-                    $buildingName = $dom->createElement("name", $building['name']);
-                    $buildingNode->appendChild($buildingName);
-
-                    // Flats
-                    $flatsNode = $dom->createElement("flats");
-                    foreach ($building['flats'] as $flat) {
-                        $flatNode = $dom->createElement("flat");
-                        $flatId = $dom->createElement("flat_id", $flat['number']);
-                        $flatNumber = $dom->createElement("apartment", $flat['number']);
-                        $flatFloor = $dom->createElement("floor", $flat['floor']);
-                        $flatRoom = $dom->createElement("room", $flat['rooms']);
-                        $flatPrice = $dom->createElement("price", $flat['price_cash']);
-                        $flatArea = $dom->createElement("area", $flat['area']);
-                        $flatStatus = $dom->createElement("status", $flat['status']);
-                        $flatSection = $dom->createElement("section", $flat['section']);
-                        $flatNode->appendChild($flatId);
-                        $flatNode->appendChild($flatNumber);
-                        $flatNode->appendChild($flatFloor);
-                        $flatNode->appendChild($flatRoom);
-                        $flatNode->appendChild($flatPrice);
-                        $flatNode->appendChild($flatArea);
-                        $flatNode->appendChild($flatStatus);
-                        $flatNode->appendChild($flatSection);
-                        $flatsNode->appendChild($flatNode);
-                    }
-
-                    $buildingNode->appendChild($flatsNode);
-
-                    $buildingsNode->appendChild($buildingNode);
-                }
-
-                $complexNode->appendChild($buildingsNode);
-                $root->appendChild($complexNode);
-            } 
-            */
-
             $dom->appendChild($root);
 
             $dom->save(storage_path('app/public/feeds/'.$feed->id.'.xml'));
