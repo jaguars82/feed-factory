@@ -24,9 +24,11 @@ class Razvitie implements ChessSchemeInterface
     public function filterArea($rawValue)
     {
         if (empty($rawValue)) { return 0; }
-        $array = explode('(', $rawValue);
+        /* $array = explode('(', $rawValue);
         $rawArea = count($array) > 1 ? explode(' ', $array[1]) : [0];
-        return floatval(str_replace(',', '.', $rawArea[0]));
+        return floatval(str_replace(',', '.', $rawArea[0])); */
+        $value = trim(str_replace('м²', '', $rawValue));
+        return floatval(str_replace(',', '.', $value));
     }
 
     public function filterFloor($rawValue) {
