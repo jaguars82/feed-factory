@@ -65,6 +65,6 @@ class Razvitie implements ChessSchemeInterface
     }
 
     public function filterChessFilename($unfilteredValue) {
-        return $unfilteredValue;
+        return str_replace('_', '"', $unfilteredValue);
     }
 }
