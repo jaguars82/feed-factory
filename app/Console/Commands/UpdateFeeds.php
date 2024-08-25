@@ -250,6 +250,7 @@ class UpdateFeeds extends Command
                         $flatItem['section'] = $entrance->number;
                         
                         // flat status
+                        // Define flat status according to color schema (or apply the default one)
                         if ($hasColorLegend) {
                             $flatStatus = array_search($flatItem['bgcolor'], $colorLegend);
 
@@ -268,6 +269,11 @@ class UpdateFeeds extends Command
                             }
                         } else {
                             $flatItem['status'] = property_exists($scheme, 'params') && array_key_exists('default_flat_status', $scheme->params) ? $scheme->params['default_flat_status'] : 0;
+                        }
+
+                        // Clarify flat status by value of a specified cell (if this configured in the chess schema)
+                        if (property_exists($scheme, 'params') && array_key_exists('clarify_status_by_status_fieldvalue', $scheme->params) && array_key_exists('status_cell', $flatItem)) {
+                            $flatItem['status'] = $flatItem['status_cell'];
                         }
                     }
 
@@ -359,6 +365,14 @@ class UpdateFeeds extends Command
 
         // flat cell background color (to use it to set the status)
         $flat['bgcolor'] = $worksheet !== null ? $worksheet->getCell($this->getCellAddressByOffset($startRow, $startColumn, $scheme->offsets['flatNumber']))->getStyle()->getFill()->getStartColor()->getRGB() : '';
+
+        // Get status from a specified cell (if that configured in the schema)
+        if (property_exists($scheme, 'params') && array_key_exists('clarify_status_by_status_fieldvalue', $scheme->params) && array_key_exists('status', $scheme->offsets)) {
+            $cellStatus = $this->getPureValue($worksheet, $scheme, $startRow, $startColumn, 'filterStatus', 'status');
+            if ($cellStatus !== false) {
+                $flat['status_cell'] = $cellStatus;
+            }
+        }
 
         return $flat;
     }

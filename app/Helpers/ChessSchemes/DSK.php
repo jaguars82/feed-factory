@@ -15,6 +15,7 @@ class DSK implements ChessSchemeInterface
         'rooms' => [2, 1],
         'area' => [2, 1],
         'price' => [6, 1],
+        'status' => [3, 1],
         'isLiving' => [0, 0], // a cell to check if apartment is living or not (0 ,0 - is default value)
         'isEuro' => [2, 1], // optional param for check apartment for 'euro' layout (via isEuro() method) 
         'isStudio' => [2, 1], // optional param for check apartment for 'studio' layout (via isStudio() method) 
@@ -25,6 +26,7 @@ class DSK implements ChessSchemeInterface
 
     public $params = [
         'default_flat_status' => 2, // default status of a flat (in case if the color of the cell is not in the color-scheme of the chess)
+        'clarify_status_by_status_fieldvalue' => true, // correct color-schema status by value of 'status' field
     ];
 
     public function filterArea($rawValue)
@@ -55,6 +57,14 @@ class DSK implements ChessSchemeInterface
     {
         if (empty($rawValue)) { return 0; }
         return (int)substr(trim($rawValue), 0, 1);
+    }
+
+    /** Method to clerify apartment's status by specified cell value 
+     * (even it differs from the cell-color status) 
+     */
+    public function filterStatus($rawValue)
+    {
+        return stripos($rawValue, 'ипотека') ? 2 : false;
     }
 
     /** Method to check if the apartment is living or not */
