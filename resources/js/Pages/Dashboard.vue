@@ -23,6 +23,7 @@ import { Head } from '@inertiajs/inertia-vue3';
             <div class="flex flex-wrap">
               <IconLinkButton :href="route('feed.index')" text="Управление фидами" icon="list-check" />
               <IconLinkButton :href="route('chess.add')" text="Добавить объект (шахматку)" icon="table" />
+              <IconLinkButton :href="route('chess.index')" text="Управление шахматками" icon="th" />
             </div>
           </div>
         </div>

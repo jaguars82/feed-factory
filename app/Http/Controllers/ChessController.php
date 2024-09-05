@@ -176,4 +176,27 @@ class ChessController extends Controller
         ]);
     }
 
+
+    public function delete($id)
+    {
+        $chess = Chess::find($id);
+
+        if ($chess) {
+
+            // remove chess file(s)
+            if (!empty($chess->example_chess_path) && Storage::exists($chess->example_chess_path)) {
+                Storage::delete($chess->example_chess_path);
+            }
+            if (!empty($chess->file_chess_path) && Storage::exists($chess->file_chess_path)) {
+                Storage::delete($chess->file_chess_path);
+            }
+
+            $chess->delete();
+            
+            return redirect()->route('chess.index');
+        } else {
+            return redirect()->route('chess.index')->with('error', 'Что-то пошло не так...');
+        }
+    }
+
 }
