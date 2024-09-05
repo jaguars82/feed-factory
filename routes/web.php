@@ -40,7 +40,8 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('chess', [ChessController::class, 'index'])->name('chess.index');
+    Route::get('/chess', [ChessController::class, 'index'])->name('chess.index');
+    Route::delete('/chess/delete/{id}', [ChessController::class, 'delete'])->name('chess.delete');
     Route::match(['get', 'post'], '/chess/add', [ChessController::class, 'add'])->name('chess.add');
 });
 

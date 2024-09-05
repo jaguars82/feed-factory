@@ -14,9 +14,9 @@ import { ZiggyVue } from '../../vendor/tightenco/ziggy/dist/vue.m';
 import { library } from '@fortawesome/fontawesome-svg-core'; /* import the fontawesome core */
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'; /* import font awesome icon component */
 /* import specific icons */
-import { faArrowUpRightFromSquare, faBriefcase, faEnvelope, faListCheck, faTable,  } from '@fortawesome/free-solid-svg-icons';
+import { faArrowUpRightFromSquare, faBriefcase, faEnvelope, faListCheck, faTable, faTh } from '@fortawesome/free-solid-svg-icons';
 /* add icons to the library */
-library.add(faArrowUpRightFromSquare, faBriefcase, faEnvelope, faListCheck, faTable );
+library.add(faArrowUpRightFromSquare, faBriefcase, faEnvelope, faListCheck, faTable, faTh );
 
 const appName = window.document.getElementsByTagName('title')[0]?.innerText || 'Feed-factory (grch.ru project)';
 
