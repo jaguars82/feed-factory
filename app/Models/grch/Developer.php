@@ -17,4 +17,9 @@ class Developer extends Model
     {
         return $this->hasMany(NewbuildingComplex::class);
     }
+
+    public function newbuildingComplexesWithActiveBuildings()
+    {
+        return $this->hasMany(NewbuildingComplex::class)->onlyActive()->onlyWithActiveBuildings();
+    }
 }
