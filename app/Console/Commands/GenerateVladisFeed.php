@@ -76,6 +76,9 @@ class GenerateVladisFeed extends Command
                         
                         // Iterate flats && build DOM-node for each flat
                         foreach ($flats as $flat) {
+
+                            if ($flat->number > 3000) continue; // bypass invalid etries
+
                             $offer = $dom->createElement("offer");
                             $offer->setAttribute("internal-id", $flat->id);
 

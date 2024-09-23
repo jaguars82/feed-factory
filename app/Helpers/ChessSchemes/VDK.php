@@ -38,7 +38,7 @@ class VDK implements ChessSchemeInterface
 
     public function filterNumber($rawValue) {
         if (empty($rawValue)) { return 0; }
-        return (int)$rawValue;
+        return (int)preg_replace("/[^0-9]/", '', $rawValue);
     }
 
     public function filterPrice($rawValue)
