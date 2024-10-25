@@ -203,7 +203,7 @@ class GenerateVladisFeed extends Command
                             $offer->appendChild($area);
 
                             // Building Name
-                            $buildingName =  $dom->createElement("building-name", $complex->name);
+                            $buildingName =  $dom->createElement("building-name", $complex->name.', '.$building->name);
                             $offer->appendChild($buildingName);
 
                             // Building id
