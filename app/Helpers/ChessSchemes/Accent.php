@@ -4,6 +4,8 @@ namespace App\Helpers\ChessSchemes;
 
 class Accent implements ChessSchemeInterface
 {
+    const NAME = 'Accent';
+
     public $offsets = [
         /* 
         * in each pair of params:

@@ -4,6 +4,8 @@ namespace App\Helpers\ChessSchemes;
 
 class DSK implements ChessSchemeInterface
 {
+    const NAME = 'DSK';
+
     public $offsets = [
         /* 
         * in each pair of params:

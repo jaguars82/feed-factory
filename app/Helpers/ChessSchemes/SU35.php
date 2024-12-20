@@ -4,6 +4,8 @@ namespace App\Helpers\ChessSchemes;
 
 class SU35 implements ChessSchemeInterface
 {
+    const NAME = 'SU35';
+    
     public $offsets = [
         /* 
         * in each pair of params:

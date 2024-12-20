@@ -4,6 +4,8 @@ namespace App\Helpers\ChessSchemes;
 
 class Legos implements ChessSchemeInterface
 {
+    const NAME = 'Legos';
+
     public $offsets = [
         /* 
         * in each pair of params:

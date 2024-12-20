@@ -4,6 +4,8 @@ namespace App\Helpers\ChessSchemes;
 
 class EuroStroy implements ChessSchemeInterface
 {
+    const NAME = 'EuroStroy';
+
     public $offsets = [
         /* 
         * in each pair of params:

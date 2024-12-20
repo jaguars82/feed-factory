@@ -4,6 +4,8 @@ namespace App\Helpers\ChessSchemes;
 
 class VDK implements ChessSchemeInterface
 {
+    const NAME = 'VDK';
+
     public $offsets = [
         /* 
         * in each pair of params:

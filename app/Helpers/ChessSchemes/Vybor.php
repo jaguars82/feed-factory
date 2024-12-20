@@ -4,6 +4,8 @@ namespace App\Helpers\ChessSchemes;
 
 class Vybor implements ChessSchemeInterface
 {
+    const NAME = 'Vybor';
+    
     public $offsets = [
         /* 
         * in each pair of params:

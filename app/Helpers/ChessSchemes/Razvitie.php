@@ -4,6 +4,8 @@ namespace App\Helpers\ChessSchemes;
 
 class Razvitie implements ChessSchemeInterface
 {
+    const NAME = 'Razvitie';
+
     public $offsets = [
         /* 
         * in each pair of params:
@@ -65,6 +67,9 @@ class Razvitie implements ChessSchemeInterface
     }
 
     public function filterChessFilename($unfilteredValue) {
-        return str_replace('_', '"', $unfilteredValue);
+        $charset = mb_detect_encoding($unfilteredValue);
+        $convertedString = iconv($charset, "UTF-8", $unfilteredValue);
+        $result = str_replace('_', '"', $convertedString);
+        return $result;
     }
 }

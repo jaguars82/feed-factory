@@ -72,9 +72,11 @@ class LoadChessfiles extends Command
      */
     public function handle()
     {
+        // Generate sets for all the active chesses
         $activeChesses = Chess::all()->where('is_active', 1);
-        $chessNames = array();
-        $chessPaths = array();
+        $chessNames = array(); // Set of active chesses names
+        $chessPaths = array(); // Set of active chesses paths
+        $chessSchemes = array(); // Set of active chesses scheme classes
         foreach ($activeChesses as $chess) {
             if (!empty($chess->scheme)) {
                 $scheme = $this->chessScheme($chess->scheme);
@@ -83,9 +85,11 @@ class LoadChessfiles extends Command
                 $currPath = !empty($chess->file_chess_path) ? $chess->file_chess_path : '';
                 array_push($chessNames, $currName);
                 array_push($chessPaths, $currPath);
+                array_push($chessSchemes, $scheme);
             }
         }
 
+        // Connect to the mail service
         $cm = new ClientManager($options = []);
         $client = $cm->make([
             'host'          => 'imap.yandex.ru',
@@ -106,7 +110,7 @@ class LoadChessfiles extends Command
 
         //var_dump($chessNames); die;
 
-        // Loop through every Mailbox
+        // Traverse through every Mailbox
         /** @var \Webklex\PHPIMAP\Folder $folder */
         foreach($folders as $folder){
 
@@ -130,12 +134,14 @@ class LoadChessfiles extends Command
                                 continue 2;
                             }
                         } */
-                        if ($chessName === $scheme->filterChessFilename(substr($attachment->name, 0, strrpos($attachment->name, '.')))) {
+                        
+                        if ($chessName === $chessSchemes[$index]->filterChessFilename(substr($attachment->name, 0, strrpos($attachment->name, '.')))) {
                         //if(str_starts_with($attachment->name, $chessName)) {
                             $pathParts = explode('/', $chessPaths[$index]);
                             $attachment->save($path = storage_path('app/'.$pathParts[0].'/'), $filename = $pathParts[1]);
                             unset($chessNames[$index]);
                             unset($chessPaths[$index]);  
+                            unset($chessSchemes[$index]);  
                         }
                     }
                 }

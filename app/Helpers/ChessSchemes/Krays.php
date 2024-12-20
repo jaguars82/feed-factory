@@ -4,6 +4,8 @@ namespace App\Helpers\ChessSchemes;
 
 class Krays implements ChessSchemeInterface
 {
+    const NAME = 'Krays';
+
     public $offsets = [
         /* 
         * in each pair of params:

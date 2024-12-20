@@ -4,6 +4,8 @@ namespace App\Helpers\ChessSchemes;
 
 class GCh implements ChessSchemeInterface
 {
+    const NAME = 'GCh';
+
     public $offsets = [
         /* 
         * in each pair of params:

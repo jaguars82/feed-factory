@@ -4,6 +4,8 @@ namespace App\Helpers\ChessSchemes;
 
 class CityCenter1C implements ChessSchemeInterface
 {
+    const NAME = 'CityCenter1C';
+
     public $offsets = [
         /* 
         * in each pair of params:
