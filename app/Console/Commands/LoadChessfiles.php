@@ -12,6 +12,7 @@ use CityCenter1C;
 use DSK;
 use GCh;
 use EuroStroy;
+use EuroStroy2;
 use VDK;
 use Vybor;
 use Krays;
