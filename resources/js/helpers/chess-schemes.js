@@ -30,8 +30,13 @@ const chessParams = [
     flatMatrix: [2, 2]
   },
   {
+    id: 'EuroStroy2',
+    name: "ЕвроСтрой (новая шахматка)",
+    flatMatrix: [6, 1]
+  },
+  {
     id: 'EuroStroy',
-    name: "ЕвроСтрой",
+    name: "ЕвроСтрой (старая шахматка)",
     flatMatrix: [3, 2]
   },
   {

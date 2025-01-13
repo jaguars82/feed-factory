@@ -216,6 +216,7 @@ return [
         'VDK' => App\Helpers\ChessSchemes\VDK::class,
         'Vybor' => App\Helpers\ChessSchemes\Vybor::class,
         'EuroStroy' => App\Helpers\ChessSchemes\EuroStroy::class,
+        'EuroStroy2' => App\Helpers\ChessSchemes\EuroStroy2::class,
         'Krays' => App\Helpers\ChessSchemes\Krays::class,
         'Legos' => App\Helpers\ChessSchemes\Legos::class,
         'Razvitie' => App\Helpers\ChessSchemes\Razvitie::class,
