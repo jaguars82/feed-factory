@@ -23,6 +23,11 @@ class Razvitie implements ChessSchemeInterface
         'rooms_in_flat' => true // if true - 'rooms' is set for each flat, if false - 'rooms' is set only fo the 1st flat in column
     ];
 
+    public $params = [
+        'number_string' => true, // process flat number to form a string with full number (we use it when the number contains not only digits)
+        'number_appendix' => true, // process flat number to form a string with number appendix (we use it when the number contains not only digits)
+    ];
+
     public function filterArea($rawValue)
     {
         if (empty($rawValue)) { return 0; }
@@ -43,6 +48,26 @@ class Razvitie implements ChessSchemeInterface
         $value = str_replace('= ', '', $rawValue);
         $value = str_replace(' =', '', $value);
         return (int)preg_replace('/\s+/', '', $value);
+    }
+
+    /** optional methods for number_string && number_appendix fields (not included in the ChessSchemeInterface) */
+    public function filterNumberString($rawValue)
+    {
+        $value = str_replace('= ', '', $rawValue);
+        $value = str_replace(' =', '', $value);
+
+        return strpos($value, "/") !== false ? trim($value) : NULL;
+    }
+
+    public function filterNumberAppendix($rawValue)
+    {
+        $value = str_replace('= ', '', $rawValue);
+        $value = str_replace(' =', '', $value);
+
+        if(strpos($value, "/") !== false){
+            $parts = explode("/", $value);
+        }
+        return isset($parts) ? '/'.trim($parts[1]) : NULL;
     }
 
     public function filterPrice($rawValue)
