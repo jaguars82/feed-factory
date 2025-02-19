@@ -26,6 +26,9 @@ return new class extends Migration
             $table->json('updated_attachments_by_developer_and_email')->comment('List of chessboard files involved in the update, grouped by developers and email');
             $table->json('not_updated_attachments_by_developer')->comment('List of chessboard files not involved in the update, grouped by developers');
             $table->json('not_updated_attachments_by_developer_and_email')->comment('List of chessboard files not involved in the update, grouped by developers and email');
+            $table->json('new_attachments_by_developer')->comment('List of new chessboard files relative to the las update session');
+            $table->json('removed_attachments_by_developer')->comment('List of removed chessboard files relative to the las update session');
+            $table->json('previous_sessions_by_developer')->comment('List of last update sessions for each developer');
             $table->json('updated_developers')->comment('Array of objects with developers (ID and name) whose chessboards were updated');
             $table->json('not_updated_developers')->comment('Array of objects with developers (ID and name) whose chessboards were in the active list but none were updated');
             $table->timestamp('update_session_at')->comment('Date and time of the chessboard update session');

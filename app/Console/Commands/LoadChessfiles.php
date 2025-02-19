@@ -122,9 +122,9 @@ class LoadChessfiles extends Command
             if (in_array(mb_strtolower($folder->name), $this->ignoreMailboxFolders, true)) continue;
             $messages = $folder
                 ->messages()
-                ->since(strtotime("-1 day"))
-                //->since(strtotime("-2 weeks"))
-                //->unseen()
+                //->since(strtotime("-1 day"))
+                ->since(strtotime("-2 weeks"))
+                ->unseen()
                 ->get();
             // Sort massages by date (descending)
             $sortedMessages = $messages->sortByDesc(fn($message) => strtotime($message->getDate()->toString()));
@@ -145,6 +145,7 @@ class LoadChessfiles extends Command
                             $pathParts = explode('/', $chess['path']);
                             $attachment->save(storage_path('app/' . $pathParts[0] . '/'), $pathParts[1]);
                             $loadCurrentAttachment = true;
+                            $chess['info']['attachment_actual_filename'] = $attachment->name;
                             $successfullyUpdated[] = $chess['info'];
                             unset($chessData[$index]);
                         }
@@ -190,6 +191,24 @@ class LoadChessfiles extends Command
         $updatedDevelopers = Provider::whereIn('id', $updatedProviderIds)->get(['id', 'name'])->toArray();
         $notUpdatedDevelopers = Provider::whereIn('id', $notUpdatedProviderIds)->get(['id', 'name'])->toArray();
 
+        // Calculate new attachments and deleted ones relative to the last update session of a developer
+        $previousUpdateSessionsByDeveloper = [];
+        $newAttachmentsByDeveloper = [];
+        $removedAttachmentsByDeveloper = [];
+        foreach ($allAttachmentsByDeveloper as $developer => $attachments) {
+            $previousUpdateOfDeveloper = ChessUpload::whereRaw("JSON_CONTAINS_PATH(all_attachments_by_developer, 'one', ?)", ['$."' . $developer . '"'])
+            ->latest('created_at')
+            ->first();
+
+            if ($previousUpdateOfDeveloper) {
+                $previousUpdateSessionsByDeveloper[$developer] = $previousUpdateOfDeveloper->id;
+
+                $newAttachmentsByDeveloper[$developer] = array_diff($notUpdatedAttachmentsByDeveloper[$developer], $previousUpdateOfDeveloper->all_attachments_by_developer[$developer]);
+
+                $removedAttachmentsByDeveloper[$developer] = array_diff($previousUpdateOfDeveloper->all_attachments_by_developer[$developer], $attachments);
+            }
+        }
+
         ChessUpload::create([
             'chess_idies_list' => $activeChesses->pluck('id')->toArray(),
             'updated_chess_idies' => array_column($successfullyUpdated, 'id'),
@@ -202,12 +221,18 @@ class LoadChessfiles extends Command
             'updated_attachments_by_developer_and_email' => $uploadedAttachments,
             'not_updated_attachments_by_developer' => $notUpdatedAttachmentsByDeveloper,
             'not_updated_attachments_by_developer_and_email' => $extraAttachments,
+            'new_attachments_by_developer' => $newAttachmentsByDeveloper,
+            'removed_attachments_by_developer' => $removedAttachmentsByDeveloper,
+            'previous_sessions_by_developer' => $previousUpdateSessionsByDeveloper,    
             'updated_developers' => $updatedDevelopers,
             'not_updated_developers' => $notUpdatedDevelopers,
             'update_session_at' => now(),
         ]);
 
-        $this->call('chess:load-report');
+        // Report the result of the update-session
+        if (count($allAttachmentsByDeveloper) > 0) {
+            $this->call('chess:load-report');
+        }
         
         return Command::SUCCESS;
     }
