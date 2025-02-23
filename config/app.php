@@ -54,9 +54,11 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost'),
+    'url' => env('APP_URL', 'http://feed-factory.grch.ru'),
 
     'asset_url' => env('ASSET_URL'),
+
+    'admin_panel_url' => env('ADMIN_PANEL_URL', 'http://houston.grch.ru'),
 
     /*
     |--------------------------------------------------------------------------

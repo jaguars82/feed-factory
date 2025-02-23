@@ -135,8 +135,9 @@ class LoadChessfiles extends Command
                 $senderEmail = $message->getFrom()->first()->mail;
 
                 foreach ($attachments as $attachment) {
-                    $loadCurrentAttachment = false;
+                    // $loadCurrentAttachment = false;
                     foreach ($chessData as $index => $chess) {
+                        $loadAttachmentForCurrChess = false;
                         /* foreach($this->ignoreIfContains as $ignoreMarker) {
                             if (strpos($attachment->name, $ignoreMarker)) continue 2;
                         } */
@@ -144,30 +145,27 @@ class LoadChessfiles extends Command
                         if ($chess['name'] === $chess['scheme']->filterChessFilename(pathinfo($attachment->name, PATHINFO_FILENAME))) {
                             $pathParts = explode('/', $chess['path']);
                             $attachment->save(storage_path('app/' . $pathParts[0] . '/'), $pathParts[1]);
-                            $loadCurrentAttachment = true;
+                            $loadAttachmentForCurrChess = true;
                             $chess['info']['attachment_actual_filename'] = $attachment->name;
                             $successfullyUpdated[] = $chess['info'];
                             unset($chessData[$index]);
                         }
-                    }
-
-                    if ($loadCurrentAttachment) {
-                        $this->addAttachmentToList($uploadedAttachments, $folder->name, $senderEmail, $attachment->name);
-                    } else {
-                        $this->addAttachmentToList($extraAttachments, $folder->name, $senderEmail, $attachment->name);
+                        if ($loadAttachmentForCurrChess) {
+                            $this->addAttachmentToList($uploadedAttachments, $folder->name, $senderEmail, $attachment->name);
+                        } else {
+                            $this->addAttachmentToList($extraAttachments, $folder->name, $senderEmail, $attachment->name);
+                        }
                     }
                 }
                 $message->setFlag('Seen');
             }
         }
 
-        // Copy extra attachments to a new array
-        // The new array contains all the attachments
-        // Extra attachments will be reduced by removing of successfully updated chesses
-        $allAttachments = array_merge([], $extraAttachments);
+        // Merge the uploaded & extra attachments to a new array to get an array of all the attachments
+        $allAttachments = $this->mergeAttachmentArrays($extraAttachments, $uploadedAttachments);
 
-        // remove values from the unused attachments structured list if they are stored in the aploaded attachments list
-        foreach ($uploadedAttachments as $developer => $attachmentsBySender) {
+        // remove values from the unused attachments structured list if they are stored in the uploaded attachments list
+        /* foreach ($uploadedAttachments as $developer => $attachmentsBySender) {
             if (!isset($extraAttachments[$developer])) continue;
             foreach ($attachmentsBySender as $email => $attachmentNames) {
                 if (!isset($extraAttachments[$developer][$email])) continue;
@@ -177,7 +175,7 @@ class LoadChessfiles extends Command
                     }
                 }
             }
-        }
+        } */
         // var_dump($extraAttachments);
 
         // Prepare data for db and save
@@ -257,6 +255,24 @@ class LoadChessfiles extends Command
         if (!in_array($attachmentName, $attachmentsArray[$folderName][$senderEmail], true)) {
             $attachmentsArray[$folderName][$senderEmail][] = $attachmentName;
         }
+    }
+
+    /** Merge structured by folder and email arrays of attachments */
+    private function mergeAttachmentArrays(array $array1, array $array2): array
+    {
+        foreach ($array2 as $folder => $senders) {
+            foreach ($senders as $sender => $attachements) {
+                // If the folder exists, check the sender
+                if (isset($array1[$folder][$sender])) {
+                    // add attachment to existing array
+                    $array1[$folder][$sender] = array_merge($array1[$folder][$sender], $attachements);
+                } else {
+                    // Add the sender and his attachments
+                    $array1[$folder][$sender] = $attachements;
+                }
+            }
+        }
+        return $array1;
     }
     
 }
