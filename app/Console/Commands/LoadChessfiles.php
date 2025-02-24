@@ -230,6 +230,7 @@ class LoadChessfiles extends Command
         // Report the result of the update-session
         if (count($allAttachmentsByDeveloper) > 0) {
             $this->call('chess:load-report');
+            $this->call('feeds:update');
         }
         
         return Command::SUCCESS;

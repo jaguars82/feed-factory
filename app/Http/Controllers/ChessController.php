@@ -176,7 +176,37 @@ class ChessController extends Controller
         ]);
     }
 
+    /** Set a chessboard status (activate/deactivate) */
+    public function setStatus(Request $request, $id)
+    {
+        $status = $request->input('status');
+        $chess = Chess::find($id);
 
+        if ($chess && $status !== null) {
+            $chess->is_active = $status;
+            $chess->save();
+            return redirect()->route('chess.index');
+        } else {
+            return redirect()->route('chess.index')->with('error', 'Что-то пошло не так...');
+        }
+    }
+
+    /** Rename a chessboard attachment name */
+    public function renameFile(Request $request, $id)
+    {
+        $attachmentFilename = $request->input('name');
+        $chess = Chess::find($id);
+
+        if ($chess && !empty($attachmentFilename)) {
+            $chess->attachment_filename = $attachmentFilename;
+            $chess->save();
+            return redirect()->route('chess.index');
+        } else {
+            return redirect()->route('chess.index')->with('error', 'Что-то пошло не так...');
+        }
+    }
+
+    /** Delete a chessboard */
     public function delete($id)
     {
         $chess = Chess::find($id);

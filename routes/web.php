@@ -41,6 +41,8 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/chess', [ChessController::class, 'index'])->name('chess.index');
+    Route::post('/chess/rename-file/{id}', [ChessController::class, 'renameFile'])->name('chess.rename-file');
+    Route::post('/chess/set-status/{id}', [ChessController::class, 'setStatus'])->name('chess.set-status');
     Route::delete('/chess/delete/{id}', [ChessController::class, 'delete'])->name('chess.delete');
     Route::match(['get', 'post'], '/chess/add', [ChessController::class, 'add'])->name('chess.add');
 });

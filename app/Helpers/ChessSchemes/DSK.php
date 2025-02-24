@@ -66,7 +66,15 @@ class DSK implements ChessSchemeInterface
      */
     public function filterStatus($rawValue)
     {
-        return mb_stripos($rawValue, 'ипотека') ? 2 : false;
+        $isOccupied = false;
+        $occupiedMarkers = ['ипотека', 'оплата'];
+        foreach ($occupiedMarkers as $marker) {
+            if (mb_stripos($rawValue, $marker) !== false) {
+                $isOccupied = true;
+                break;
+            }
+        }
+        return $isOccupied === true ? 2 : false;
     }
 
     /** Method to check if the apartment is living or not */

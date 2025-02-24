@@ -13,8 +13,8 @@ class ReportChessLoad extends Command
     protected $description = 'Send a report with information about the last chess update session';
     protected $recipients = [
         'info@teacher-site.ru',
-        //'project_manager@grvrn.ru',
-        'jaguars82@yandex.ru',
+        'project_manager@grvrn.ru',
+        //'jaguars82@yandex.ru',
         //'forteachersite@gmail.com',
     ];
 
