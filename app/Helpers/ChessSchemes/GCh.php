@@ -77,11 +77,13 @@ class GCh implements ChessSchemeInterface
     }
 
     /** Method to check if the apartment is living or not */
-    public function isLiving($rawValue) {
+    public function isLiving($rawValue)
+    {
         return true;
     }
 
-    public function filterChessFilename($unfilteredValue) {
+    public function filterChessFilename($unfilteredValue)
+    {
         return $unfilteredValue;
     }
 }

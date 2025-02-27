@@ -39,12 +39,14 @@ class DSK implements ChessSchemeInterface
         return floatval(str_replace(',', '.', $area));
     }
 
-    public function filterFloor($rawValue) {
+    public function filterFloor($rawValue)
+    {
         if (empty($rawValue)) { return 0; }
         return (int)preg_replace("/[^0-9]/", '', $rawValue);
     }
 
-    public function filterNumber($rawValue) {
+    public function filterNumber($rawValue)
+    {
         if (empty($rawValue)) { return 0; }
         return (int)preg_replace("/[^0-9]/", '', $rawValue);
     }
@@ -78,24 +80,28 @@ class DSK implements ChessSchemeInterface
     }
 
     /** Method to check if the apartment is living or not */
-    public function isLiving($rawValue) {
+    public function isLiving($rawValue)
+    {
         return true;
     }
 
-    public function filterChessFilename($unfilteredValue) {
+    public function filterChessFilename($unfilteredValue)
+    {
         $filteredValue = $unfilteredValue;
         return $filteredValue;
     }
 
     /** Optional method to check if the apartment has a euro layout */
-    public function isEuro($rawValue) {
+    public function isEuro($rawValue)
+    {
         $rawMarker = substr($rawValue, 0, strpos($rawValue, ','));
         $marker = mb_substr($rawMarker, -1);
         return $marker === 'Е';
     }
 
     /** Optional method to check if the apartment has a studio layout */
-    public function isStudio($rawValue) {
+    public function isStudio($rawValue)
+    {
         $rawMarker = substr($rawValue, 0, strpos($rawValue, ','));
         if ($rawMarker === 'кв. своб. планир') return true;
         $marker = mb_substr($rawMarker, -1);

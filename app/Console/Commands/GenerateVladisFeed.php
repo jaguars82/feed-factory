@@ -56,6 +56,7 @@ class GenerateVladisFeed extends Command
         if (count(self::$selectedDevelopersIdies)) {
             foreach (self::$selectedDevelopersIdies as $developerId) {
                 $developer = Developer::find($developerId);
+                if (is_null($developer)) continue;
                 $complexes = $developer->newbuildingComplexesWithActiveBuildings;
                 
                 // echo $developer->name; echo PHP_EOL;

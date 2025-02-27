@@ -34,12 +34,14 @@ class EuroStroy2 implements ChessSchemeInterface
         return floatval(str_replace(',', '.', $value));
     }
 
-    public function filterFloor($rawValue) {
+    public function filterFloor($rawValue)
+    {
         if (empty($rawValue)) { return 0; }
         return (int)$rawValue;
     }
 
-    public function filterNumber($rawValue) {
+    public function filterNumber($rawValue)
+    {
         if (empty($rawValue)) { return 0; }
         $value = trim(str_replace('№', '', $rawValue));
         return (int)$value;
@@ -59,11 +61,27 @@ class EuroStroy2 implements ChessSchemeInterface
     }
 
     /** Method to check if the apartment is living or not */
-    public function isLiving($rawValue) {
+    public function isLiving($rawValue)
+    {
         return true;
     }
 
-    public function filterChessFilename($unfilteredValue) {
-        return $unfilteredValue;
+    public function filterChessFilename($unfilteredValue)
+    {
+        // check if the argument is a string && not empty
+        if (!is_string($unfilteredValue)) {
+            return $unfilteredValue;
+        }
+
+        // pattern - (digits) at the end of the string
+        $pattern = '/\s\(\d+\)$/';
+
+        if (preg_match($pattern, $unfilteredValue, $matches, PREG_OFFSET_CAPTURE)) {
+            $filteredValue = substr($unfilteredValue, 0, $matches[0][1]);
+        } else {
+            $filteredValue = $unfilteredValue;
+        }
+
+        return $filteredValue;
     }
 }

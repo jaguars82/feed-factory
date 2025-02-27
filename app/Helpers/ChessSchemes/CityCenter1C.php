@@ -30,13 +30,15 @@ class CityCenter1C implements ChessSchemeInterface
         return floatval(str_replace(',', '.', $array[3]));
     }
 
-    public function filterFloor($rawValue) {
+    public function filterFloor($rawValue)
+    {
         if (empty($rawValue)) { return 0; }
         $array = explode(' ', $rawValue);
         return (int)str_replace(',', '.', $array[1]);
     }
 
-    public function filterNumber($rawValue) {
+    public function filterNumber($rawValue)
+    {
         if (empty($rawValue)) { return 0; }
         return (int)$rawValue;
     }
@@ -55,11 +57,13 @@ class CityCenter1C implements ChessSchemeInterface
     }
 
     /** Method to check if the apartment is living or not */
-    public function isLiving($rawValue) {
+    public function isLiving($rawValue)
+    {
         return true;
     }
 
-    public function filterChessFilename($unfilteredValue) {
+    public function filterChessFilename($unfilteredValue)
+    {
         return $unfilteredValue;
     }
 }

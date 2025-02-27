@@ -253,7 +253,7 @@ class UpdateFeeds extends Command
                         // flat status
                         // Define flat status according to color schema (or apply the default one)
                         if ($hasColorLegend) {
-                            $flatStatus = array_search($flatItem['bgcolor'], $colorLegend);
+                            $flatStatus = array_search(strtolower($flatItem['bgcolor']), array_map('strtolower', $colorLegend));
 
                             switch ($flatStatus) {
                                 case 'sale':

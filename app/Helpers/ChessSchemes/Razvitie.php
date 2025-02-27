@@ -38,12 +38,14 @@ class Razvitie implements ChessSchemeInterface
         return floatval(str_replace(',', '.', $value));
     }
 
-    public function filterFloor($rawValue) {
+    public function filterFloor($rawValue)
+    {
         if (empty($rawValue)) { return 0; }
         return (int)$rawValue;
     }
 
-    public function filterNumber($rawValue) {
+    public function filterNumber($rawValue)
+    {
         if (empty($rawValue)) { return 0; }
         $value = str_replace('= ', '', $rawValue);
         $value = str_replace(' =', '', $value);
@@ -84,14 +86,16 @@ class Razvitie implements ChessSchemeInterface
     }
 
     /** Method to check if the apartment is living or not */
-    public function isLiving($rawValue) {
+    public function isLiving($rawValue)
+    {
         if (str_contains('неж', $rawValue)) {
             return false;
         }
         return true;
     }
 
-    public function filterChessFilename($unfilteredValue) {
+    public function filterChessFilename($unfilteredValue)
+    {
         $charset = mb_detect_encoding($unfilteredValue);
         $convertedString = iconv($charset, "UTF-8", $unfilteredValue);
         $result = str_replace('_', '"', $convertedString);

@@ -22,10 +22,25 @@ class ChessController extends Controller
 
     public function index(Request $request)
     {
-        $chesses = Chess::all();
+        $chesses = Chess::with('provider')->get();
+
+        $chessesByDeveloper = [];
+        foreach ($chesses as $chess) {
+            $providerId = $chess->provider_id;
+
+            if (!isset($chessesByDeveloper[$providerId])) {
+                $chessesByDeveloper[$providerId] = [
+                    'provider_name' => $chess->provider->name,
+                    'chesses' => [],
+                ];
+            }
+
+            $chessesByDeveloper[$providerId]['chesses'][] = $chess;
+        }
 
         return Inertia::render('Chess/Index', [
             'chesses' => $chesses,
+            'chessesByDeveloper' => $chessesByDeveloper,
         ]);
     }
 
@@ -96,7 +111,7 @@ class ChessController extends Controller
             }
         }
 
-        // TO DO in the line below provide a path to existing chess (when we are editing a chess)
+        // TODO in the line below provide a path to existing chess (when we are editing a chess)
         // if (!isset($this->pathToProcessingChessFile)) {$this->pathToProcessingChessFile = 'public/example1.xlsx';}
 
         $sheetData = array();

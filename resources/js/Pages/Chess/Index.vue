@@ -9,8 +9,15 @@ import { ElNotification } from 'element-plus';
 const props = defineProps({
   chesses: {
     type: Array,
+    default: [],
+  },
+  chessesByDeveloper: {
+    type: Object,
+    default: {},
   }
 });
+
+const sortByDeveloper = ref(false);
 
 const dialogFileRenameVisible = ref(false);
 const chessForFileRename = ref(null);
@@ -126,13 +133,65 @@ function deleteChess(chessId) {
       <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="p-6 bg-white shadow-sm sm:rounded-lg">
 
-          <div class="mb-4">
+          <div class="mb-4 flex justify-between items-center">
             <Link :href="route('chess.add')">
               <el-button type="primary">Добавить шахматку</el-button>
             </Link>
+            <div>
+              <span class="mr-2">Сгруппировать по застройщику</span>
+              <el-switch v-model="sortByDeveloper" />
+            </div>
           </div>
 
-          <el-table :data="chesses" empty-text="Нет шахматок">
+          <!-- Chessboards sorted by the developer -->
+          <template v-if="sortByDeveloper">
+            <template v-for="(providerItem, index) in chessesByDeveloper">
+              <el-collapse>
+                <el-collapse-item>
+                  <template #title>
+                    <span class="text-base font-bold">{{ providerItem.provider_name }}</span>
+                  </template>
+                  <el-table :data="providerItem.chesses" empty-text="Нет шахматок">
+                    <el-table-column prop="name" label="Название" />
+                    <el-table-column prop="complex_alias" label="ЖК" />
+                    <el-table-column prop="building_alias" label="Позиция" />
+                    <el-table-column label="Имя файла для обновления">
+                      <template #default="scope">
+                        <el-button class="mr-2" circle @click="openFileRenameDialog(scope.row.id)">
+                          <el-icon style="vertical-align: middle">
+                            <Edit />
+                          </el-icon>
+                        </el-button>
+                        <span>{{ scope.row.attachment_filename }}</span>
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="Активна" align="center">
+                      <template #default="scope">
+                        <el-switch
+                          :model-value="scope.row.is_active"
+                          :active-value="1"
+                          :inactive-value="0"
+                          @change="(newStatus) => updateStatus(scope.row.id, newStatus)"
+                        />
+                      </template>
+                    </el-table-column>
+                    <el-table-column align="right">
+                      <template #default="scope">
+                        <el-button type="danger" circle @click="askForDelete(scope.row.id)">
+                          <el-icon style="vertical-align: middle">
+                            <Delete />
+                          </el-icon>
+                        </el-button>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+                </el-collapse-item>
+              </el-collapse>
+            </template>
+          </template>
+
+          <!-- Chessboards flat list -->
+          <el-table v-else :data="chesses" empty-text="Нет шахматок">
             <el-table-column prop="name" label="Название" />
             <el-table-column prop="complex_alias" label="ЖК" />
             <el-table-column prop="building_alias" label="Позиция" />

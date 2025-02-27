@@ -36,12 +36,14 @@ class Legos implements ChessSchemeInterface
         return floatval(str_replace(',', '.', $arr[count($arr) - 1]));
     }
 
-    public function filterFloor($rawValue) {
+    public function filterFloor($rawValue)
+    {
         if (empty($rawValue)) { return 0; }
         return (int)preg_replace("/[^0-9]/", '', $rawValue);
     }
 
-    public function filterNumber($rawValue) {
+    public function filterNumber($rawValue)
+    {
         if (empty($rawValue)) { return 0; }
         return (int)$rawValue;
     }
@@ -59,12 +61,29 @@ class Legos implements ChessSchemeInterface
     }
 
     /** Method to check if the apartment is living or not */
-    public function isLiving($rawValue) {
+    public function isLiving($rawValue)
+    {
         return true;
     }
 
-    public function filterChessFilename($unfilteredValue) {
-        $filteredValue = substr($unfilteredValue, 0, strrpos($unfilteredValue, '-'));
+    public function filterChessFilename($unfilteredValue)
+    {
+        // check if the argument is a string && not empty
+        if (!is_string($unfilteredValue)) {
+            return $unfilteredValue;
+        }
+
+        // Search the last '-'
+        $lastOccurrencePosition = strrpos($unfilteredValue, '-');
+
+        // if substring exists, cut the string
+        if ($lastOccurrencePosition !== false) {
+            $filteredValue = substr($unfilteredValue, 0, $lastOccurrencePosition);
+        } else {
+            // if doesn't exist - return unfiltered value
+            $filteredValue = $unfilteredValue;
+        }
+
         return $filteredValue;
     }
 }
