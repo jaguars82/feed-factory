@@ -135,7 +135,9 @@ class LoadChessfiles extends Command
                 $senderEmail = $message->getFrom()->first()->mail;
 
                 foreach ($attachments as $attachment) {
-                    // $loadCurrentAttachment = false;
+                    /*if($folder->name == "ДСК") {
+                        $this->info($attachment->name);
+                    }*/
                     foreach ($chessData as $index => $chess) {
                         $loadAttachmentForCurrChess = false;
                         /* foreach($this->ignoreIfContains as $ignoreMarker) {
@@ -161,11 +163,9 @@ class LoadChessfiles extends Command
             }
         }
 
-        // Merge the uploaded & extra attachments to a new array to get an array of all the attachments
-        $allAttachments = $this->mergeAttachmentArrays($extraAttachments, $uploadedAttachments);
-
+        
         // remove values from the unused attachments structured list if they are stored in the uploaded attachments list
-        /* foreach ($uploadedAttachments as $developer => $attachmentsBySender) {
+        foreach ($uploadedAttachments as $developer => $attachmentsBySender) {
             if (!isset($extraAttachments[$developer])) continue;
             foreach ($attachmentsBySender as $email => $attachmentNames) {
                 if (!isset($extraAttachments[$developer][$email])) continue;
@@ -175,8 +175,10 @@ class LoadChessfiles extends Command
                     }
                 }
             }
-        } */
-        // var_dump($extraAttachments);
+        } 
+
+        // Merge the uploaded & extra attachments to a new array to get an array of all the attachments
+        $allAttachments = $this->mergeAttachmentArrays($extraAttachments, $uploadedAttachments);
 
         // Prepare data for db and save
         $allAttachmentsByDeveloper = array_map(fn($emails) => $emails ? array_merge(...array_values($emails)) : [], $allAttachments);
